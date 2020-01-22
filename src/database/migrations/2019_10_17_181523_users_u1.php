@@ -32,15 +32,12 @@ class UsersU1 extends Migration {
 			$table->unsignedInteger('deleted_by_id')->nullable()->after('updated_by_id');
 			$table->softdeletes();
 
-			$table->foreign('company_id')->references('id')->on('companies')->onDelete('CASCADE')->onUpdate('cascade');
 			$table->foreign('user_type_id')->references('id')->on('configs')->onDelete('CASCADE')->onUpdate('cascade');
 			$table->foreign('profile_image_id')->references('id')->on('attachments')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->foreign('created_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->foreign('updated_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
 			$table->foreign('deleted_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
 
-			$table->unique(["company_id", "username"]);
-			$table->unique(["company_id", "mobile_number"]);
 		});
 	}
 
