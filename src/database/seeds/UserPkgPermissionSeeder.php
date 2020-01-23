@@ -4,7 +4,7 @@ namespace Abs\UserPkg\Database\Seeds;
 use App\Permission;
 use Illuminate\Database\Seeder;
 
-class UserPermissionSeeder extends Seeder {
+class UserPkgPermissionSeeder extends Seeder {
 	/**
 	 * Run the database seeds.
 	 *
@@ -28,7 +28,7 @@ class UserPermissionSeeder extends Seeder {
 			[
 				'display_order' => 2,
 				'parent' => 'users',
-				'name' => 'delete-user',
+				'name' => 'edit-user',
 				'display_name' => 'Edit',
 			],
 			[

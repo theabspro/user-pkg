@@ -22,37 +22,21 @@ app.component('userList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
-        var table_scroll;
-        table_scroll = $('.page-main-content').height() - 37;
         var dataTable = $('#users_list').DataTable({
-            "dom": cndn_dom_structure,
+            "dom": dom_structure,
             "language": {
-                // "search": "",
-                // "searchPlaceholder": "Search",
+                "search": "",
+                "searchPlaceholder": "Search",
                 "lengthMenu": "Rows _MENU_",
                 "paginate": {
                     "next": '<i class="icon ion-ios-arrow-forward"></i>',
                     "previous": '<i class="icon ion-ios-arrow-back"></i>'
                 },
             },
-            pageLength: 10,
             processing: true,
-            stateSaveCallback: function(settings, data) {
-                localStorage.setItem('CDataTables_' + settings.sInstance, JSON.stringify(data));
-            },
-            stateLoadCallback: function(settings) {
-                var state_save_val = JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
-                if (state_save_val) {
-                    $('#search_user').val(state_save_val.search.search);
-                }
-                return JSON.parse(localStorage.getItem('CDataTables_' + settings.sInstance));
-            },
             serverSide: true,
             paging: true,
             stateSave: true,
-            ordering: false,
-            scrollY: table_scroll + "px",
-            scrollCollapse: true,
             ajax: {
                 url: laravel_routes['getUserList'],
                 type: "GET",
@@ -72,24 +56,34 @@ app.component('userList', {
                 { data: 'mobile_no', name: 'users.mobile_no' },
                 { data: 'email', name: 'users.email' },
             ],
+            "initComplete": function(settings, json) {
+                $('.dataTables_length select').select2();
+            },
             "infoCallback": function(settings, start, end, max, total, pre) {
-                $('#table_info').html(total)
-                $('.foot_info').html('Showing ' + start + ' to ' + end + ' of ' + max + ' entries')
+                $('#table_info').html(max + '/ ' + total)
             },
             rowCallback: function(row, data) {
                 $(row).addClass('highlight-row');
             }
         });
-        $('.dataTables_length select').select2();
 
-        $scope.clear_search = function() {
-            $('#search_user').val('');
-            $('#users_list').DataTable().search('').draw();
+        /* Page Title Appended */
+        $('.page-header-content .display-inline-block .data-table-title').html('Customer Channel Groups <span class="badge badge-secondary" id="table_info">0</span>');
+        $('.page-header-content .search.display-inline-block .add_close_button').html('<button type="button" class="btn btn-img btn-add-close"><img src="' + image_scr2 + '" class="img-responsive"></button>');
+        $('.page-header-content .refresh.display-inline-block').html('<button type="button" class="btn btn-refresh"><img src="' + image_scr3 + '" class="img-responsive"></button>');
+        if (self.hasPermission('add-customer-channel-group')) {
+            $('.add_new_button').html(
+                '<a href="#!/customer-channel-pkg/customer-channel-group/add" type="button" class="btn btn-secondary">' +
+                'Add New' +
+                '</a>'
+            );
         }
+        $('.btn-add-close').on("click", function() {
+            $('#users_list').DataTable().search('').draw();
+        });
 
-        var dataTables = $('#users_list').dataTable();
-        $("#search_user").keyup(function() {
-            dataTables.fnFilter(this.value);
+        $('.btn-refresh').on("click", function() {
+            $('#users_list').DataTable().ajax.reload();
         });
 
         //DELETE
@@ -154,13 +148,9 @@ app.component('userForm', {
         ).then(function(response) {
             // console.log(response);
             self.user = response.data.user;
-            self.address = response.data.address;
-            self.country_list = response.data.country_list;
             self.action = response.data.action;
             $rootScope.loading = false;
             if (self.action == 'Edit') {
-                $scope.onSelectedCountry(self.address.country_id);
-                $scope.onSelectedState(self.address.state_id);
                 if (self.user.deleted_at) {
                     self.switch_value = 'Inactive';
                 } else {
@@ -168,8 +158,6 @@ app.component('userForm', {
                 }
             } else {
                 self.switch_value = 'Active';
-                self.state_list = [{ 'id': '', 'name': 'Select State' }];
-                self.city_list = [{ 'id': '', 'name': 'Select City' }];
             }
         });
 
@@ -188,109 +176,43 @@ app.component('userForm', {
         $scope.btnNxt = function() {}
         $scope.prev = function() {}
 
-        //SELECT STATE BASED COUNTRY
-        $scope.onSelectedCountry = function(id) {
-            user_get_state_by_country = vendor_get_state_by_country;
-            $http.post(
-                user_get_state_by_country, { 'country_id': id }
-            ).then(function(response) {
-                // console.log(response);
-                self.state_list = response.data.state_list;
-            });
-        }
-
-        //SELECT CITY BASED STATE
-        $scope.onSelectedState = function(id) {
-            user_get_city_by_state = vendor_get_city_by_state
-            $http.post(
-                user_get_city_by_state, { 'state_id': id }
-            ).then(function(response) {
-                // console.log(response);
-                self.city_list = response.data.city_list;
-            });
-        }
-
         var form_id = '#form';
         var v = jQuery(form_id).validate({
             ignore: '',
             rules: {
-                'code': {
-                    required: true,
-                    minlength: 3,
-                    maxlength: 255,
-                },
                 'name': {
                     required: true,
                     minlength: 3,
                     maxlength: 255,
                 },
-                'cust_group': {
-                    maxlength: 100,
-                },
-                'gst_number': {
+                'username': {
                     required: true,
-                    maxlength: 100,
+                    minlength: 3,
+                    maxlength: 191,
                 },
-                'dimension': {
-                    maxlength: 50,
-                },
-                'address': {
+                'password': {
                     required: true,
-                    minlength: 5,
-                    maxlength: 250,
-                },
-                'address_line1': {
                     minlength: 3,
                     maxlength: 255,
                 },
-                'address_line2': {
-                    minlength: 3,
-                    maxlength: 255,
+                'mobile_number': {
+                    number: true,
+                    minlength: 10,
+                    maxlength: 10,
                 },
-                // 'pincode': {
-                //     required: true,
-                //     minlength: 6,
-                //     maxlength: 6,
-                // },
-            },
-            messages: {
-                'code': {
-                    maxlength: 'Maximum of 255 charaters',
+                'mpin': {
+                    number: true,
+                    minlength: 4,
+                    maxlength: 10,
                 },
-                'name': {
-                    maxlength: 'Maximum of 255 charaters',
+                'otp': {
+                    minlength: 4,
+                    maxlength: 6,
                 },
-                'cust_group': {
-                    maxlength: 'Maximum of 100 charaters',
+                'imei': {
+                    minlength: 13,
+                    maxlength: 15,
                 },
-                'dimension': {
-                    maxlength: 'Maximum of 50 charaters',
-                },
-                'gst_number': {
-                    maxlength: 'Maximum of 25 charaters',
-                },
-                'email': {
-                    maxlength: 'Maximum of 100 charaters',
-                },
-                'address_line1': {
-                    maxlength: 'Maximum of 255 charaters',
-                },
-                'address_line2': {
-                    maxlength: 'Maximum of 255 charaters',
-                },
-                // 'pincode': {
-                //     maxlength: 'Maximum of 6 charaters',
-                // },
-            },
-            invalidHandler: function(event, validator) {
-                $noty = new Noty({
-                    type: 'error',
-                    layout: 'topRight',
-                    text: 'You have errors,Please check all tabs'
-                }).show();
-                setTimeout(function() {
-                    $noty.close();
-                }, 3000)
             },
             submitHandler: function(form) {
                 let formData = new FormData($(form_id)[0]);

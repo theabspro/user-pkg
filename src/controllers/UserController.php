@@ -2,8 +2,6 @@
 
 namespace Abs\UserPkg;
 use Abs\UserPkg\User;
-use App\Address;
-use App\Country;
 use App\Http\Controllers\Controller;
 use Auth;
 use Carbon\Carbon;
@@ -21,7 +19,6 @@ class UserController extends Controller {
 		$users = User::withTrashed()
 			->select(
 				'users.id',
-				'users.code',
 				'users.name',
 				DB::raw('IF(users.mobile_no IS NULL,"--",users.mobile_no) as mobile_no'),
 				DB::raw('IF(users.email IS NULL,"--",users.email) as email'),
@@ -51,22 +48,26 @@ class UserController extends Controller {
 			->orderby('users.id', 'desc');
 
 		return Datatables::of($users)
-			->addColumn('code', function ($user) {
-				$status = $user->status == 'Active' ? 'green' : 'red';
-				return '<span class="status-indicator ' . $status . '"></span>' . $user->code;
-			})
 			->addColumn('action', function ($user) {
-				$edit_img = asset('public/theme/img/table/cndn/edit.svg');
-				$delete_img = asset('public/theme/img/table/cndn/delete.svg');
-				return '
-					<a href="#!/user-pkg/user/edit/' . $user->id . '">
-						<img src="' . $edit_img . '" alt="View" class="img-responsive">
-					</a>
-					<a href="javascript:;" data-toggle="modal" data-target="#delete_user"
+				$edit = asset('public/img/content/table/edit-yellow.svg');
+				$edit_active = asset('public/img/content/table/edit-yellow-active.svg');
+				$delete = asset('/public/img/content/table/delete-default.svg');
+				$delete_active = asset('/public/img/content/table/delete-active.svg');
+
+				$action = '';
+				if (Entrust::can('edit-user')) {
+					$action .= '<a href="#!/customer-channel-pkg/customer-channel-group/edit/' . $user->id . '">
+						<img src="' . $edit . '" alt="Edit" class="img-responsive" onmouseover=this.src="' . $edit_active . '" onmouseout=this.src="' . $edit . '" >
+					</a>';
+				}
+				if (Entrust::can('delete-user')) {
+					$action .= '<a href="javascript:;" data-toggle="modal" data-target="#delete_user"
 					onclick="angular.element(this).scope().deleteUser(' . $user->id . ')" dusk = "delete-btn" title="Delete">
-					<img src="' . $delete_img . '" alt="delete" class="img-responsive">
+					<img src="' . $delete . '" alt="Delete" class="img-responsive" onmouseover=this.src="' . $delete_active . '" onmouseout=this.src="' . $delete . '" >
 					</a>
 					';
+				}
+				return $action;
 			})
 			->make(true);
 	}
@@ -74,19 +75,12 @@ class UserController extends Controller {
 	public function getUserFormData($id = NULL) {
 		if (!$id) {
 			$user = new User;
-			$address = new Address;
 			$action = 'Add';
 		} else {
 			$user = User::withTrashed()->find($id);
-			$address = Address::where('address_of_id', 24)->where('entity_id', $id)->first();
-			if (!$address) {
-				$address = new Address;
-			}
 			$action = 'Edit';
 		}
-		$this->data['country_list'] = $country_list = Collect(Country::select('id', 'name')->get())->prepend(['id' => '', 'name' => 'Select Country']);
 		$this->data['user'] = $user;
-		$this->data['address'] = $address;
 		$this->data['action'] = $action;
 
 		return response()->json($this->data);
@@ -96,40 +90,40 @@ class UserController extends Controller {
 		// dd($request->all());
 		try {
 			$error_messages = [
-				'code.required' => 'User Code is Required',
-				'code.max' => 'Maximum 255 Characters',
-				'code.min' => 'Minimum 3 Characters',
-				'code.unique' => 'User Code is already taken',
-				'name.required' => 'User Name is Required',
+				'name.required' => 'Name is Required',
 				'name.max' => 'Maximum 255 Characters',
 				'name.min' => 'Minimum 3 Characters',
-				'gst_number.required' => 'GST Number is Required',
-				'gst_number.max' => 'Maximum 191 Numbers',
-				'mobile_no.max' => 'Maximum 25 Numbers',
-				// 'email.required' => 'Email is Required',
-				'address_line1.required' => 'Address Line 1 is Required',
-				'address_line1.max' => 'Maximum 255 Characters',
-				'address_line1.min' => 'Minimum 3 Characters',
-				'address_line2.max' => 'Maximum 255 Characters',
-				// 'pincode.required' => 'Pincode is Required',
-				// 'pincode.max' => 'Maximum 6 Characters',
-				// 'pincode.min' => 'Minimum 6 Characters',
+				'username.required' => 'User Name is Required',
+				'username.max' => 'Maximum 191 Characters',
+				'username.min' => 'Minimum 3 Characters',
+				'username.unique' => 'User Name is already taken',
+				'email.unique' => 'User Name is already taken',
+				'mobile_number.unique' => 'Mobile Number is already taken',
+				'imei.max' => 'Maximum 15 Characters',
+				'otp.max' => 'Maximum 6 Characters',
+				'mpin.max' => 'Maximum 10 Characters',
 			];
 			$validator = Validator::make($request->all(), [
-				'code' => [
+				'name' => 'required:true|max:255|min:3',
+				'username' => [
 					'required:true',
-					'max:255',
+					'max:191',
 					'min:3',
-					'unique:users,code,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
+					'unique:users,username',
 				],
-				'name' => 'required|max:255|min:3',
-				'gst_number' => 'required|max:191',
-				'mobile_no' => 'nullable|max:25',
-				// 'email' => 'nullable',
-				'address' => 'required',
-				'address_line1' => 'required|max:255|min:3',
-				'address_line2' => 'max:255',
-				// 'pincode' => 'required|max:6|min:6',
+				'email' => [
+					'nullable:true',
+					'max:191',
+					'unique:users,email,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
+				],
+				'mobile_number' => [
+					'nullable:true',
+					'max:191',
+					'unique:users,mobile_number,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
+				],
+				'imei' => 'nullable|max:15',
+				'otp' => 'nullable|max:6',
+				'mpin' => 'nullable|max:10',
 			], $error_messages);
 			if ($validator->fails()) {
 				return response()->json(['success' => false, 'errors' => $validator->errors()->all()]);
@@ -138,39 +132,27 @@ class UserController extends Controller {
 			DB::beginTransaction();
 			if (!$request->id) {
 				$user = new User;
-				$user->created_by_id = Auth::user()->id;
+				$user->created_by = Auth::user()->id;
 				$user->created_at = Carbon::now();
 				$user->updated_at = NULL;
-				$address = new Address;
 			} else {
 				$user = User::withTrashed()->find($request->id);
-				$user->updated_by_id = Auth::user()->id;
+				$user->updated_by = Auth::user()->id;
 				$user->updated_at = Carbon::now();
-				$address = Address::where('address_of_id', 24)->where('entity_id', $request->id)->first();
 			}
 			$user->fill($request->all());
 			$user->company_id = Auth::user()->company_id;
+			$user->entity_type = 1;
+			$user->username = $request->username;
+			$user->password = Hash::make($request->password);
 			if ($request->status == 'Inactive') {
 				$user->deleted_at = Carbon::now();
-				$user->deleted_by_id = Auth::user()->id;
+				$user->deleted_by = Auth::user()->id;
 			} else {
-				$user->deleted_by_id = NULL;
+				$user->deleted_by = NULL;
 				$user->deleted_at = NULL;
 			}
-			$user->gst_number = $request->gst_number;
-			$user->axapta_location_id = $request->axapta_location_id;
 			$user->save();
-
-			if (!$address) {
-				$address = new Address;
-			}
-			$address->fill($request->all());
-			$address->company_id = Auth::user()->company_id;
-			$address->address_of_id = 24;
-			$address->entity_id = $user->id;
-			$address->address_type_id = 40;
-			$address->name = 'Primary Address';
-			$address->save();
 
 			DB::commit();
 			if (!($request->id)) {
@@ -186,7 +168,6 @@ class UserController extends Controller {
 	public function deleteUser($id) {
 		$delete_status = User::withTrashed()->where('id', $id)->forceDelete();
 		if ($delete_status) {
-			$address_delete = Address::where('address_of_id', 24)->where('entity_id', $id)->forceDelete();
 			return response()->json(['success' => true]);
 		}
 	}
