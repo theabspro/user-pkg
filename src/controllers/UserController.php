@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Auth;
 use Carbon\Carbon;
 use DB;
+use Entrust;
+use Hash;
 use Illuminate\Http\Request;
 use Validator;
 use Yajra\Datatables\Datatables;
@@ -15,34 +17,42 @@ class UserController extends Controller {
 	public function __construct() {
 	}
 
-	public function getUserList(Request $request) {
+	public function getUserPkgList(Request $request) {
 		$users = User::withTrashed()
 			->select(
 				'users.id',
-				'users.name',
-				DB::raw('IF(users.mobile_no IS NULL,"--",users.mobile_no) as mobile_no'),
-				DB::raw('IF(users.email IS NULL,"--",users.email) as email'),
+				DB::raw('COALESCE(users.name,"--") as name'),
+				'users.username',
+				DB::raw('COALESCE(users.mobile_number,"--") as mobile_number'),
+				DB::raw('COALESCE(users.email,"--") as email'),
 				DB::raw('IF(users.deleted_at IS NULL,"Active","Inactive") as status')
 			)
 			->where('users.company_id', Auth::user()->company_id)
 			->where(function ($query) use ($request) {
-				if (!empty($request->user_code)) {
-					$query->where('users.code', 'LIKE', '%' . $request->user_code . '%');
+				if (!empty($request->name)) {
+					$query->where('users.name', 'LIKE', '%' . $request->name . '%');
 				}
 			})
 			->where(function ($query) use ($request) {
-				if (!empty($request->user_name)) {
-					$query->where('users.name', 'LIKE', '%' . $request->user_name . '%');
+				if (!empty($request->username)) {
+					$query->where('users.username', 'LIKE', '%' . $request->username . '%');
 				}
 			})
 			->where(function ($query) use ($request) {
-				if (!empty($request->mobile_no)) {
-					$query->where('users.mobile_no', 'LIKE', '%' . $request->mobile_no . '%');
+				if (!empty($request->mobile_number)) {
+					$query->where('users.mobile_number', 'LIKE', '%' . $request->mobile_number . '%');
 				}
 			})
 			->where(function ($query) use ($request) {
 				if (!empty($request->email)) {
 					$query->where('users.email', 'LIKE', '%' . $request->email . '%');
+				}
+			})
+			->where(function ($query) use ($request) {
+				if ($request->status == '1') {
+					$query->whereNull('users.deleted_at');
+				} else if ($request->status == '0') {
+					$query->whereNotNull('users.deleted_at');
 				}
 			})
 			->orderby('users.id', 'desc');
@@ -51,14 +61,22 @@ class UserController extends Controller {
 			->addColumn('action', function ($user) {
 				$edit = asset('public/img/content/table/edit-yellow.svg');
 				$edit_active = asset('public/img/content/table/edit-yellow-active.svg');
+				$view = asset('public/img/content/table/eye.svg');
+				$view_active = asset('public/img/content/table/eye-active.svg');
 				$delete = asset('/public/img/content/table/delete-default.svg');
 				$delete_active = asset('/public/img/content/table/delete-active.svg');
 
 				$action = '';
 				if (Entrust::can('edit-user')) {
-					$action .= '<a href="#!/customer-channel-pkg/customer-channel-group/edit/' . $user->id . '">
+					$action .= '<a href="#!/user-pkg/user/edit/' . $user->id . '">
 						<img src="' . $edit . '" alt="Edit" class="img-responsive" onmouseover=this.src="' . $edit_active . '" onmouseout=this.src="' . $edit . '" >
 					</a>';
+				}
+				if (Entrust::can('view-user')) {
+					$action .= '<a href="#!/user-pkg/user/view/' . $user->id . '">
+						<img src="' . $view . '" alt="View" class="img-responsive" onmouseover=this.src="' . $view_active . '" onmouseout=this.src="' . $view . '" >
+					</a>';
+
 				}
 				if (Entrust::can('delete-user')) {
 					$action .= '<a href="javascript:;" data-toggle="modal" data-target="#delete_user"
@@ -86,6 +104,12 @@ class UserController extends Controller {
 		return response()->json($this->data);
 	}
 
+	public function viewFormData($id) {
+		$this->data['user'] = $user = User::withTrashed()->find($id);
+		$this->data['action'] = 'View';
+		return response()->json($this->data);
+	}
+
 	public function saveUser(Request $request) {
 		// dd($request->all());
 		try {
@@ -109,7 +133,7 @@ class UserController extends Controller {
 					'required:true',
 					'max:191',
 					'min:3',
-					'unique:users,username',
+					'unique:users,username,' . $request->id . ',id',
 				],
 				'email' => [
 					'nullable:true',
@@ -118,9 +142,10 @@ class UserController extends Controller {
 				],
 				'mobile_number' => [
 					'nullable:true',
-					'max:191',
+					'max:10',
 					'unique:users,mobile_number,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
 				],
+				'password' => 'nullable',
 				'imei' => 'nullable|max:15',
 				'otp' => 'nullable|max:6',
 				'mpin' => 'nullable|max:10',
@@ -140,17 +165,18 @@ class UserController extends Controller {
 				$user->updated_by = Auth::user()->id;
 				$user->updated_at = Carbon::now();
 			}
-			$user->fill($request->all());
 			$user->company_id = Auth::user()->company_id;
 			$user->entity_type = 1;
-			$user->username = $request->username;
-			$user->password = Hash::make($request->password);
+			$user->fill($request->all());
 			if ($request->status == 'Inactive') {
 				$user->deleted_at = Carbon::now();
 				$user->deleted_by = Auth::user()->id;
 			} else {
 				$user->deleted_by = NULL;
 				$user->deleted_at = NULL;
+			}
+			if ($request->change_password == '1') {
+				$user->password = Hash::make($request->password);
 			}
 			$user->save();
 

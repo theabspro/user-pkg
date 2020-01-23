@@ -14,14 +14,25 @@ class User extends Model {
 	protected $table = 'users';
 	public $timestamps = true;
 	protected $fillable = [
-		'code',
-		'name',
-		'cust_group',
-		'dimension',
-		'mobile_no',
-		'email',
 		'company_id',
-		'address',
+		'entity_type',
+		'user_type_id',
+		'entity_id',
+		'username',
+		'name',
+		'email',
+		'force_password_reset',
+		'mobile_number',
+		'password',
+		'imei',
+		'otp',
+		'mpin',
+		'profile_image',
+		'created_at',
+		'updated_at',
+		'deleted_at',
+		'last_login',
+		'last_logout',
 	];
 
 	public static function createFromObject($record_data) {

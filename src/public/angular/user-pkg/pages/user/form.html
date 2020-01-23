@@ -60,20 +60,31 @@
                                                             <input type="text" name="username" ng-model='$ctrl.user.username' class="form-control required" placeholder="Enter Username">
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-3">
+                                                    <div class="col-md-3" ng-if="$ctrl.user.id">
                                                         <div class="form-group">
-                                                            <lable>Password<span class="mandatory">*</span></lable>
-                                                            <input type="password" name="password" ng-model='$ctrl.user.password' class="form-control required" placeholder="Enter Password">
-                                                        </div>
-                                                    </div>
+                                                            <label>Change Password<span class="mandatory">*</span></label>
+                                                            <div class="common-radio-button">
+                                                                <input type="radio" id="change-yes" name="change_password" ng-click="changePassword(1)" value="1" ng-checked="$ctrl.user.change_password=='1'">
+                                                                <label for="change-yes">Yes</label>
+                                                                <input type="radio" id="change-no" name="change_password" ng-click="changePassword(0)" value="0" ng-checked="$ctrl.user.change_password!='1'">
+                                                                <label for="change-no">No</label>
+                                                            </div>
+                                                        </div><!-- Field -->
+                                                    </div><!-- column -->
+                                                    <div class="col-md-3 hide_password">
+                                                        <div class="form-group">
+                                                            <label>Password<span class="mandatory">*</span></label>
+                                                            <input class="form-control" type="password" Placeholder="Enter Password" name="password" id="password" ng-model="$ctrl.user.password" maxlength="8" minlength="8">
+                                                        </div><!-- Field -->
+                                                    </div><!-- column -->
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-md-3">
                                                         <div class="form-group">
                                                             <lable>Email</lable>
                                                             <input type="text" name="email" ng-model='$ctrl.user.email' class="form-control" placeholder="Enter Email ID">
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="row">
                                                     <div class="col-md-3">
                                                         <div class="form-group">
                                                             <lable>Mobile Number</lable>
@@ -92,21 +103,21 @@
                                                             <input type="text" name="otp" ng-model='$ctrl.user.otp' class="form-control" placeholder="Enter OTP">
                                                         </div>
                                                     </div>
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-md-3">
                                                         <div class="form-group">
                                                             <lable>MPIN</lable>
                                                             <input type="text" name="mpin" ng-model='$ctrl.user.mpin' class="form-control" placeholder="Enter MPIN">
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="row">
                                                     <div class="col-md-3">
-                                                        <div class="form-group" ng-init="users.first_login=0">
+                                                        <div class="form-group" ng-init="$ctrl.user.first_login=0">
                                                             <label>Force Password Reset<span class="mandatory">*</span></label>
                                                             <div class="common-radio-button">
-                                                                <input type="radio" id="login-yes" name="force_password_reset" ng-value="0" ng-checked="user.force_password_reset=='1'">
+                                                                <input type="radio" id="login-yes" name="force_password_reset" ng-value="1" ng-checked="$ctrl.user.force_password_reset=='1'">
                                                                 <label for="login-yes">Yes</label>
-                                                                <input type="radio" id="login-no" name="force_password_reset" ng-value="1" ng-checked="user.force_password_reset!='1'">
+                                                                <input type="radio" id="login-no" name="force_password_reset" ng-value="0" ng-checked="$ctrl.user.force_password_reset!='1'">
                                                                 <label for="login-no">No</label>
                                                             </div>
                                                         </div><!-- Field -->

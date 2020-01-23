@@ -3,13 +3,84 @@
         <thead>
             <tr>
                 <th class="actions">Action</th>
-                <th>Group Name</th>
-                <!-- <th>Product</th> -->
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Mobile Number</th>
                 <th>Status</th>
             </tr>
         </thead>
     </table><!-- Table -->
+    <div class="hide">
+        <div id="add_new_wrap">
+            <a href="#!/user-pkg/user/add" role="button" class="btn btn-secondary">Add New</a>
+        </div>
+    </div>
 </div>
+<!-- Modal Filter Start -->
+<div class="modal fade modal-filter" id="modal-user-filter" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn btn-colse btn-img btn-filter-close" data-dismiss="modal" aria-label="Close">
+                    <img src="./public/img/content/modal/close-circle.svg" alt="Modal" class="img-responsive" onmouseover="this.src='./public/img/content/modal/close-circle-active.svg'" onmouseout="this.src='./public/img/content/modal/close-circle.svg'">
+                </button>
+                <h5 class="modal-title">Filter</h5>
+                <div class="filter-reset">
+                    <p class="text-red" ng-click="reset_filter(); $ctrl.user.status=''">Reset Filter</p>
+                </div>
+            </div><!-- Modal Header -->
+            <div class="modal-body modal-sm-body">
+                <div class="row modal-row">
+                    <div class="col-md-6">
+                        <div class="input-text form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="Enter Name" aria-invalid="false" autocomplete="off">
+                        </div><!-- Field -->
+                    </div><!-- Column -->
+                    <div class="col-md-6">
+                        <div class="input-text form-group">
+                            <label>Username</label>
+                            <input type="text" class="form-control" name="username" id="username" placeholder="Enter Username" aria-invalid="false" autocomplete="off">
+                        </div><!-- Field -->
+                    </div><!-- Column -->
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-text form-group">
+                            <label>Email ID</label>
+                            <input type="text" class="form-control" name="email" id="email" placeholder="Enter Email ID" aria-invalid="false" autocomplete="off">
+                        </div><!-- Field -->
+                    </div><!-- Column -->
+                    <div class="col-md-6">
+                        <div class="input-text form-group">
+                            <label>Mobile Number</label>
+                            <input type="text" class="form-control" name="mobile_number" id="mobile_number" placeholder="Enter Mobile Number" aria-invalid="false" autocomplete="off">
+                        </div><!-- Field -->
+                    </div><!-- Column -->
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-text form-group">
+                            <label>Status</label>
+                            <md-select ng-model="$ctrl.user.status" md-on-close="clearSearchTerm()" data-md-container-class="selectdemoSelectHeader" ng-change="onSelectedStatus($ctrl.user.status)" placeholder="Select Status">
+                                <md-select-header class="demo-select-header">
+                                    <input ng-model="searchTerm" type="search" placeholder="Search for a Status" class="demo-header-searchbox md-text" onkeydown="mdSelectOnKeyDownOverride(event)">
+                                </md-select-header>
+                                <!-- <md-tooltip>{{selectedPriceComponentName($ctrl.price_components.id)}}</md-tooltip> -->
+                                <md-optgroup>
+                                    <md-option ng-value="status.id" ng-repeat="status in $ctrl.status | filter:searchTerm">{{status.name}}</md-option>
+                                </md-optgroup>
+                            </md-select>
+                            <input type="hidden" class="form-control" name="status" id="status" value="">
+                        </div><!-- Field -->
+                    </div><!-- Column -->
+                </div><!-- Row -->
+            </div><!-- Modal Body -->
+        </div><!-- Modal Content -->
+    </div><!-- Modal Dialog -->
+</div><!-- Modal -->
+<!--Modal Filter End-->
 <!-- Modal -->
 <div class="modal fade down-block" id="delete_user" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">

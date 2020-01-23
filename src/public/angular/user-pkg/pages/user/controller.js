@@ -13,12 +13,16 @@ app.config(['$routeProvider', function($routeProvider) {
     when('/user-pkg/user/edit/:id', {
         template: '<user-form></user-form>',
         title: 'Edit User',
+    }).
+    when('/user-pkg/user/view/:id', {
+        template: '<user-view></user-view>',
+        title: 'View User',
     });
 }]);
 
 app.component('userList', {
     templateUrl: user_list_template_url,
-    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $location) {
+    controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope, $location, $element, $mdSelect) {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
@@ -38,29 +42,32 @@ app.component('userList', {
             paging: true,
             stateSave: true,
             ajax: {
-                url: laravel_routes['getUserList'],
+                url: laravel_routes['getUserPkgList'],
                 type: "GET",
                 dataType: "json",
                 data: function(d) {
-                    d.user_code = $('#user_code').val();
-                    d.user_name = $('#user_name').val();
-                    d.mobile_no = $('#mobile_no').val();
+                    d.name = $('#name').val();
+                    d.username = $('#username').val();
+                    d.mobile_number = $('#mobile_number').val();
                     d.email = $('#email').val();
+                    d.status = $('#status').val();
                 },
             },
 
             columns: [
                 { data: 'action', class: 'action', name: 'action', searchable: false },
-                { data: 'code', name: 'users.code' },
                 { data: 'name', name: 'users.name' },
-                { data: 'mobile_no', name: 'users.mobile_no' },
+                { data: 'username', name: 'users.username' },
                 { data: 'email', name: 'users.email' },
+                { data: 'mobile_number', name: 'users.mobile_number' },
+                { data: 'status', name: 'status', searchable: false },
             ],
             "initComplete": function(settings, json) {
                 $('.dataTables_length select').select2();
+                $('#modal-loading').modal('hide');
             },
             "infoCallback": function(settings, start, end, max, total, pre) {
-                $('#table_info').html(max + '/ ' + total)
+                $('#table_info').html(total + ' / ' + max)
             },
             rowCallback: function(row, data) {
                 $(row).addClass('highlight-row');
@@ -68,14 +75,14 @@ app.component('userList', {
         });
 
         /* Page Title Appended */
-        $('.page-header-content .display-inline-block .data-table-title').html('Customer Channel Groups <span class="badge badge-secondary" id="table_info">0</span>');
+        $('.page-header-content .display-inline-block .data-table-title').html('Users <span class="badge badge-secondary" id="table_info">0</span>');
         $('.page-header-content .search.display-inline-block .add_close_button').html('<button type="button" class="btn btn-img btn-add-close"><img src="' + image_scr2 + '" class="img-responsive"></button>');
         $('.page-header-content .refresh.display-inline-block').html('<button type="button" class="btn btn-refresh"><img src="' + image_scr3 + '" class="img-responsive"></button>');
-        if (self.hasPermission('add-customer-channel-group')) {
-            $('.add_new_button').html(
-                '<a href="#!/customer-channel-pkg/customer-channel-group/add" type="button" class="btn btn-secondary">' +
-                'Add New' +
-                '</a>'
+        if (self.hasPermission('add-user')) {
+            var addnew_block = $('#add_new_wrap').html();
+            $('.page-header-content .alignment-right .add_new_button').html(
+                '<a role="button" id="open" data-toggle="modal"  data-target="#modal-user-filter" class="btn btn-img"> <img src="' + image_scr + '" alt="Filter" onmouseover=this.src="' + image_scr1 + '" onmouseout=this.src="' + image_scr + '"></a>' +
+                '' + addnew_block + ''
             );
         }
         $('.btn-add-close').on("click", function() {
@@ -85,6 +92,11 @@ app.component('userList', {
         $('.btn-refresh').on("click", function() {
             $('#users_list').DataTable().ajax.reload();
         });
+
+        //FOCUS ON SEARCH FIELD
+        setTimeout(function() {
+            $('div.dataTables_filter input').focus();
+        }, 2500);
 
         //DELETE
         $scope.deleteUser = function($id) {
@@ -111,24 +123,45 @@ app.component('userList', {
         }
 
         //FOR FILTER
-        $('#user_code').on('keyup', function() {
-            dataTables.fnFilter();
+        self.status = [
+            { id: '', name: 'Select Status' },
+            { id: '1', name: 'Active' },
+            { id: '0', name: 'Inactive' },
+        ];
+        $element.find('input').on('keydown', function(ev) {
+            ev.stopPropagation();
         });
-        $('#user_name').on('keyup', function() {
-            dataTables.fnFilter();
+        /* Modal Md Select Hide */
+        $('.modal').bind('click', function(event) {
+            if ($('.md-select-menu-container').hasClass('md-active')) {
+                $mdSelect.hide();
+            }
         });
-        $('#mobile_no').on('keyup', function() {
-            dataTables.fnFilter();
+
+        var datatables = $('#users_list').dataTable();
+        $('#name').on('keyup', function() {
+            datatables.fnFilter();
+        });
+        $('#username').on('keyup', function() {
+            datatables.fnFilter();
+        });
+        $('#mobile_number').on('keyup', function() {
+            datatables.fnFilter();
         });
         $('#email').on('keyup', function() {
-            dataTables.fnFilter();
+            datatables.fnFilter();
         });
+        $scope.onSelectedStatus = function(val) {
+            $("#status").val(val);
+            datatables.fnFilter();
+        }
         $scope.reset_filter = function() {
-            $("#user_name").val('');
-            $("#user_code").val('');
-            $("#mobile_no").val('');
+            $("#name").val('');
+            $("#username").val('');
+            $("#mobile_number").val('');
             $("#email").val('');
-            dataTables.fnFilter();
+            $("#status").val('');
+            datatables.fnFilter();
         }
 
         $rootScope.loading = false;
@@ -151,6 +184,7 @@ app.component('userForm', {
             self.action = response.data.action;
             $rootScope.loading = false;
             if (self.action == 'Edit') {
+                $scope.changePassword(0);
                 if (self.user.deleted_at) {
                     self.switch_value = 'Inactive';
                 } else {
@@ -160,6 +194,17 @@ app.component('userForm', {
                 self.switch_value = 'Active';
             }
         });
+
+        $scope.changePassword = function(val) {
+            if (val == 0) {
+                $(".hide_password").hide();
+                $("#password").attr('disabled', true);
+            } else {
+                $(".hide_password").show();
+                $("#password").attr('disabled', false);
+                $("#password").val('');
+            }
+        }
 
         /* Tab Funtion */
         $('.btn-nxt').on("click", function() {
@@ -175,6 +220,9 @@ app.component('userForm', {
         });
         $scope.btnNxt = function() {}
         $scope.prev = function() {}
+
+        //FOCUS ON FIRST INPUT FIELD IN FORM
+        $("input:text:visible:first").focus();
 
         var form_id = '#form';
         var v = jQuery(form_id).validate({
@@ -270,6 +318,22 @@ app.component('userForm', {
                         }, 3000);
                     });
             }
+        });
+    }
+});
+//------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------
+app.component('userView', {
+    templateUrl: user_view_template_url,
+    controller: function($http, HelperService, $scope, $routeParams, $rootScope) {
+        var self = this;
+        self.hasPermission = HelperService.hasPermission;
+        self.angular_routes = angular_routes;
+        $http.get(
+            user_view_data_url + '/' + $routeParams.id
+        ).then(function(response) {
+            self.user = response.data.user;
+            self.action = response.data.action;
         });
     }
 });
