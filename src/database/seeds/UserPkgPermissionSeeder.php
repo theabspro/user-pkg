@@ -34,6 +34,12 @@ class UserPkgPermissionSeeder extends Seeder {
 			[
 				'display_order' => 3,
 				'parent' => 'users',
+				'name' => 'view-user',
+				'display_name' => 'View',
+			],
+			[
+				'display_order' => 4,
+				'parent' => 'users',
 				'name' => 'delete-user',
 				'display_name' => 'Delete',
 			],
