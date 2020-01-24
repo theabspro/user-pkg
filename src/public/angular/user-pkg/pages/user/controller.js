@@ -174,9 +174,14 @@ app.component('userForm', {
         ).then(function(response) {
             // console.log(response);
             self.user = response.data.user;
+            self.role_list = response.data.role_list;
             self.action = response.data.action;
             $rootScope.loading = false;
             if (self.action == 'Edit') {
+                self.user.role = [];
+                angular.forEach(self.user.roles, function(value, key) {
+                    self.user.role.push(value.id);
+                });
                 $scope.changePassword(0);
                 if (self.user.deleted_at) {
                     self.switch_value = 'Inactive';
@@ -217,6 +222,11 @@ app.component('userForm', {
         //FOCUS ON FIRST INPUT FIELD IN FORM
         $("input:text:visible:first").focus();
 
+        //ROLE VALIDATION 
+        $.validator.addMethod("roles", function(value, element) {
+            return this.optional(element) || value != '[]';
+        }, " This field is required.");
+
         var form_id = '#form';
         var v = jQuery(form_id).validate({
             ignore: '',
@@ -253,6 +263,9 @@ app.component('userForm', {
                 'imei': {
                     minlength: 13,
                     maxlength: 15,
+                },
+                'roles_id': {
+                    roles: true,
                 },
             },
             submitHandler: function(form) {
@@ -304,8 +317,14 @@ app.component('userView', {
         $http.get(
             user_view_data_url + '/' + $routeParams.id
         ).then(function(response) {
+            // console.log(response);
             self.user = response.data.user;
             self.action = response.data.action;
+            self.roles = [];
+            angular.forEach(self.user.roles, function(value, key) {
+                self.roles.push(value.name);
+            });
+            self.user_roles = self.roles.join(", ");
         });
     }
 });

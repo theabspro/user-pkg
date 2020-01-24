@@ -1,6 +1,7 @@
 <?php
 
 namespace Abs\UserPkg;
+use Abs\RolePkg\Role;
 use Abs\UserPkg\User;
 use App\Http\Controllers\Controller;
 use Auth;
@@ -97,15 +98,18 @@ class UserController extends Controller {
 		} else {
 			$user = User::withTrashed()->find($id);
 			$action = 'Edit';
+			$user->roles;
 		}
 		$this->data['user'] = $user;
 		$this->data['action'] = $action;
+		$this->data['role_list'] = $role_list = Role::select('name', 'id')->get();
 
 		return response()->json($this->data);
 	}
 
 	public function viewFormData($id) {
 		$this->data['user'] = $user = User::withTrashed()->find($id);
+		$user->roles;
 		$this->data['action'] = 'View';
 		return response()->json($this->data);
 	}
@@ -179,6 +183,8 @@ class UserController extends Controller {
 				$user->password = Hash::make($request->password);
 			}
 			$user->save();
+
+			$user->roles()->sync(json_decode($request->roles_id));
 
 			DB::commit();
 			if (!($request->id)) {
