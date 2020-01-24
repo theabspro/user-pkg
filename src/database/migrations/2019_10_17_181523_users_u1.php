@@ -15,7 +15,7 @@ class UsersU1 extends Migration {
 			$table->dropColumn('name');
 
 			$table->unsignedInteger('company_id')->after('id');
-			$table->unsignedInteger('user_type_id')->after('company_id');
+			$table->unsignedInteger('user_type_id')->nullable()->after('company_id');
 			$table->unsignedInteger('entity_id')->nullable()->after('user_type_id');
 			$table->string('first_name', 32)->nullable()->after('entity_id');
 			$table->string('last_name', 32)->nullable()->after('first_name');
@@ -34,10 +34,6 @@ class UsersU1 extends Migration {
 
 			$table->foreign('user_type_id')->references('id')->on('configs')->onDelete('CASCADE')->onUpdate('cascade');
 			$table->foreign('profile_image_id')->references('id')->on('attachments')->onDelete('SET NULL')->onUpdate('cascade');
-			$table->foreign('created_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
-			$table->foreign('updated_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
-			$table->foreign('deleted_by_id')->references('id')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
-
 		});
 	}
 
