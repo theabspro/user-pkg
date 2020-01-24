@@ -26,8 +26,10 @@ class UserController extends Controller {
 				'users.username',
 				DB::raw('COALESCE(users.mobile_number,"--") as mobile_number'),
 				DB::raw('COALESCE(users.email,"--") as email'),
-				DB::raw('IF(users.deleted_at IS NULL,"Active","Inactive") as status')
+				DB::raw('IF(users.deleted_at IS NULL,"Active","Inactive") as status'),
+				DB::raw('COUNT(role_user.user_id) as roles_count')
 			)
+			->leftJoin('role_user', 'users.id', 'role_user.user_id')
 			->where('users.company_id', Auth::user()->company_id)
 			->where(function ($query) use ($request) {
 				if (!empty($request->name)) {
@@ -56,6 +58,7 @@ class UserController extends Controller {
 					$query->whereNotNull('users.deleted_at');
 				}
 			})
+			->groupBy('users.id')
 			->orderby('users.id', 'desc');
 
 		return Datatables::of($users)

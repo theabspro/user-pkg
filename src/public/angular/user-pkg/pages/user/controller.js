@@ -60,6 +60,7 @@ app.component('userList', {
                 { data: 'username', name: 'users.username' },
                 { data: 'email', name: 'users.email' },
                 { data: 'mobile_number', name: 'users.mobile_number' },
+                { data: 'roles_count', name: 'roles_count', searchable: false },
                 { data: 'status', name: 'status', searchable: false },
             ],
             "initComplete": function(settings, json) {
