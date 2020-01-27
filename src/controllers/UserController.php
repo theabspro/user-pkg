@@ -21,7 +21,8 @@ class UserController extends Controller {
 		$users = User::withTrashed()
 			->select(
 				'users.id',
-				DB::raw('COALESCE(users.name,"--") as name'),
+				DB::raw('COALESCE(users.first_name,"--") as name'),
+				DB::raw('COALESCE(users.last_name,"--") as last_name'),
 				'users.username',
 				DB::raw('COALESCE(users.mobile_number,"--") as mobile_number'),
 				DB::raw('COALESCE(users.email,"--") as email'),

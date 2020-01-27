@@ -1,4 +1,4 @@
-@if(config('custom.PKG_DEV'))
+@if(config('user-pkg.DEV'))
     <?php $user_pkg_prefix = '/packages/abs/user-pkg/src';?>
 @else
     <?php $user_pkg_prefix = '';?>

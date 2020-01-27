@@ -42,7 +42,7 @@ app.component('userList', {
             paging: true,
             stateSave: true,
             ajax: {
-                url: laravel_routes['getUserPkgList'],
+                url: url(laravel_routes['getUserPkgList']),
                 type: "GET",
                 dataType: "json",
                 data: function(d) {
