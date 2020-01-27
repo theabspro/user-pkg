@@ -22,8 +22,8 @@ class UserController extends Controller {
 		$users = User::withTrashed()
 			->select(
 				'users.id',
-				DB::raw('COALESCE(users.first_name,"--") as name'),
-				DB::raw('COALESCE(users.last_name,"--") as last_name'),
+				'users.first_name as name',
+				'users.last_name',
 				'users.username',
 				DB::raw('COALESCE(users.mobile_number,"--") as mobile_number'),
 				DB::raw('COALESCE(users.email,"--") as email'),
@@ -34,7 +34,7 @@ class UserController extends Controller {
 			->where('users.company_id', Auth::user()->company_id)
 			->where(function ($query) use ($request) {
 				if (!empty($request->name)) {
-					$query->where('users.name', 'LIKE', '%' . $request->name . '%');
+					$query->where('users.first_name', 'LIKE', '%' . $request->name . '%');
 				}
 			})
 			->where(function ($query) use ($request) {
@@ -59,10 +59,18 @@ class UserController extends Controller {
 					$query->whereNotNull('users.deleted_at');
 				}
 			})
-			->groupBy('users.id')
-			->orderby('users.id', 'desc');
+			->groupby('users.id')
+			->orderby('users.id', 'desc')
+		// ->get()
+		;
+
+		// dd($users);
 
 		return Datatables::of($users)
+			->addColumn('name', function ($users) {
+				$status = $users->status == 'Active' ? 'green' : 'red';
+				return '<span class="status-indicator ' . $status . '"></span>' . $users->name;
+			})
 			->addColumn('action', function ($user) {
 				$edit = asset('public/img/content/table/edit-yellow.svg');
 				$edit_active = asset('public/img/content/table/edit-yellow-active.svg');

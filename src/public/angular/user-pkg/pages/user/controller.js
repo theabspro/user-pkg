@@ -1,7 +1,6 @@
 app.config(['$routeProvider', function($routeProvider) {
-
     $routeProvider.
-    //CUSTOMER
+    //USER
     when('/user-pkg/user/list', {
         template: '<user-list></user-list>',
         title: 'Users',
@@ -42,7 +41,7 @@ app.component('userList', {
             paging: true,
             stateSave: true,
             ajax: {
-                url: url(laravel_routes['getUserPkgList']),
+                url: laravel_routes['getUserPkgList'],
                 type: "GET",
                 dataType: "json",
                 data: function(d) {
@@ -61,7 +60,7 @@ app.component('userList', {
                 { data: 'email', name: 'users.email' },
                 { data: 'mobile_number', name: 'users.mobile_number' },
                 { data: 'roles_count', name: 'roles_count', searchable: false },
-                { data: 'status', name: 'status', searchable: false },
+                // { data: 'status', name: 'status', searchable: false },
             ],
             "initComplete": function(settings, json) {
                 $('.dataTables_length select').select2();

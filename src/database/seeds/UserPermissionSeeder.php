@@ -4,7 +4,7 @@ namespace Abs\UserPkg\Database\Seeds;
 use App\Permission;
 use Illuminate\Database\Seeder;
 
-class UserPkgPermissionSeeder extends Seeder {
+class UserPermissionSeeder extends Seeder {
 	/**
 	 * Run the database seeds.
 	 *
