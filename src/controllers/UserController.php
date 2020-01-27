@@ -16,6 +16,7 @@ use Yajra\Datatables\Datatables;
 class UserController extends Controller {
 
 	public function __construct() {
+		$this->data['theme'] = config('custom.admin_theme');
 	}
 
 	public function getUserPkgList(Request $request) {
@@ -72,12 +73,12 @@ class UserController extends Controller {
 				return '<span class="status-indicator ' . $status . '"></span>' . $users->name;
 			})
 			->addColumn('action', function ($user) {
-				$edit = asset('public/img/content/table/edit-yellow.svg');
-				$edit_active = asset('public/img/content/table/edit-yellow-active.svg');
-				$view = asset('public/img/content/table/eye.svg');
-				$view_active = asset('public/img/content/table/eye-active.svg');
-				$delete = asset('/public/img/content/table/delete-default.svg');
-				$delete_active = asset('/public/img/content/table/delete-active.svg');
+				$edit = asset('public/themes/' . $this->data['theme'] . '/img/content/table/edit-yellow.svg');
+				$edit_active = asset('public/themes/' . $this->data['theme'] . '/img/content/table/edit-yellow-active.svg');
+				$view = asset('public/themes/' . $this->data['theme'] . '/img/content/table/eye.svg');
+				$view_active = asset('public/themes/' . $this->data['theme'] . '/img/content/table/eye-active.svg');
+				$delete = asset('public/themes/' . $this->data['theme'] . '/img/content/table/delete-default.svg');
+				$delete_active = asset('public/themes/' . $this->data['theme'] . '/img/content/table/delete-active.svg');
 
 				$action = '';
 				if (Entrust::can('edit-user')) {
@@ -103,7 +104,8 @@ class UserController extends Controller {
 			->make(true);
 	}
 
-	public function getUserFormData($id = NULL) {
+	public function getUserFormData(Request $request) {
+		$id = $request->id;
 		if (!$id) {
 			$user = new User;
 			$action = 'Add';
@@ -115,14 +117,15 @@ class UserController extends Controller {
 		$this->data['user'] = $user;
 		$this->data['action'] = $action;
 		$this->data['role_list'] = $role_list = Role::select('name', 'id')->get();
-
+		$this->data['theme'];
 		return response()->json($this->data);
 	}
 
-	public function viewFormData($id) {
-		$this->data['user'] = $user = User::withTrashed()->find($id);
+	public function viewFormData(Request $request) {
+		$this->data['user'] = $user = User::withTrashed()->find($request->id);
 		$user->roles;
 		$this->data['action'] = 'View';
+		$this->data['theme'];
 		return response()->json($this->data);
 	}
 
@@ -209,8 +212,8 @@ class UserController extends Controller {
 			return response()->json(['success' => false, 'errors' => ['Exception Error' => $e->getMessage()]]);
 		}
 	}
-	public function deleteUser($id) {
-		$delete_status = User::withTrashed()->where('id', $id)->forceDelete();
+	public function deleteUser(Request $request) {
+		$delete_status = User::withTrashed()->where('id', $request->id)->forceDelete();
 		if ($delete_status) {
 			return response()->json(['success' => true]);
 		}

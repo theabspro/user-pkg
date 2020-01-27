@@ -105,7 +105,11 @@ app.component('userList', {
         $scope.deleteConfirm = function() {
             $id = $('#user_id').val();
             $http.get(
-                user_delete_data_url + '/' + $id,
+                laravel_routes['deleteUser'], {
+                    params: {
+                        id: $id,
+                    }
+                }
             ).then(function(response) {
                 if (response.data.success) {
                     custom_noty('success', 'User Deleted Successfully');
@@ -165,17 +169,22 @@ app.component('userList', {
 app.component('userForm', {
     templateUrl: user_form_template_url,
     controller: function($http, $location, HelperService, $scope, $routeParams, $rootScope) {
-        get_form_data_url = typeof($routeParams.id) == 'undefined' ? user_get_form_data_url : user_get_form_data_url + '/' + $routeParams.id;
+        // get_form_data_url = typeof($routeParams.id) == 'undefined' ? user_get_form_data_url : user_get_form_data_url + '/' + $routeParams.id;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
         self.angular_routes = angular_routes;
         $http.get(
-            get_form_data_url
+            laravel_routes['getUserFormData'], {
+                params: {
+                    id: typeof($routeParams.id) == 'undefined' ? null : $routeParams.id,
+                }
+            }
         ).then(function(response) {
-            // console.log(response);
+            console.log(response);
             self.user = response.data.user;
             self.role_list = response.data.role_list;
             self.action = response.data.action;
+            self.theme = response.data.theme;
             $rootScope.loading = false;
             if (self.action == 'Edit') {
                 self.user.role = [];
@@ -315,11 +324,16 @@ app.component('userView', {
         self.hasPermission = HelperService.hasPermission;
         self.angular_routes = angular_routes;
         $http.get(
-            user_view_data_url + '/' + $routeParams.id
+            laravel_routes['viewFormData'], {
+                params: {
+                    id: $routeParams.id,
+                }
+            }
         ).then(function(response) {
             // console.log(response);
             self.user = response.data.user;
             self.action = response.data.action;
+            self.theme = response.data.theme;
             self.roles = [];
             angular.forEach(self.user.roles, function(value, key) {
                 self.roles.push(value.name);
