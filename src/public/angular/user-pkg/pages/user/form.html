@@ -112,6 +112,18 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-3">
+                                                        <div class="form-group">
+                                                            <label>Roles<span class="mandatory">*</span></label>
+                                                            <ui-select multiple ng-model="$ctrl.user.role" on-remove="$ctrl.removed($item, $model)" theme="bootstrap" ng-disabled="$ctrl.disabled" close-on-select="false" style="" title="Choose a role">
+                                                                <ui-select-match placeholder="Select Role">{{$item.name}}</ui-select-match>
+                                                                <ui-select-choices repeat="i.id as i in $ctrl.role_list | propsFilter: {name: $select.search}">
+                                                                    <div ng-bind-html="i.name | highlight: $select.search"></div>
+                                                                </ui-select-choices>
+                                                            </ui-select>
+                                                            <input type="hidden" name="roles_id" value="{{$ctrl.user.role}}" class="required">
+                                                        </div><!-- Field -->
+                                                    </div><!-- column -->
+                                                    <div class="col-md-3">
                                                         <div class="form-group" ng-init="$ctrl.user.first_login=0">
                                                             <label>Force Password Reset<span class="mandatory">*</span></label>
                                                             <div class="common-radio-button">

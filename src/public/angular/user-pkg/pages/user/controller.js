@@ -60,6 +60,7 @@ app.component('userList', {
                 { data: 'username', name: 'users.username' },
                 { data: 'email', name: 'users.email' },
                 { data: 'mobile_number', name: 'users.mobile_number' },
+                { data: 'roles_count', name: 'roles_count', searchable: false },
                 { data: 'status', name: 'status', searchable: false },
             ],
             "initComplete": function(settings, json) {
@@ -108,14 +109,7 @@ app.component('userList', {
                 user_delete_data_url + '/' + $id,
             ).then(function(response) {
                 if (response.data.success) {
-                    $noty = new Noty({
-                        type: 'success',
-                        layout: 'topRight',
-                        text: 'User Deleted Successfully',
-                    }).show();
-                    setTimeout(function() {
-                        $noty.close();
-                    }, 3000);
+                    custom_noty('success', 'User Deleted Successfully');
                     $('#users_list').DataTable().ajax.reload(function(json) {});
                     $location.path('/user-pkg/user/list');
                 }
@@ -181,9 +175,14 @@ app.component('userForm', {
         ).then(function(response) {
             // console.log(response);
             self.user = response.data.user;
+            self.role_list = response.data.role_list;
             self.action = response.data.action;
             $rootScope.loading = false;
             if (self.action == 'Edit') {
+                self.user.role = [];
+                angular.forEach(self.user.roles, function(value, key) {
+                    self.user.role.push(value.id);
+                });
                 $scope.changePassword(0);
                 if (self.user.deleted_at) {
                     self.switch_value = 'Inactive';
@@ -224,6 +223,11 @@ app.component('userForm', {
         //FOCUS ON FIRST INPUT FIELD IN FORM
         $("input:text:visible:first").focus();
 
+        //ROLE VALIDATION 
+        $.validator.addMethod("roles", function(value, element) {
+            return this.optional(element) || value != '[]';
+        }, " This field is required.");
+
         var form_id = '#form';
         var v = jQuery(form_id).validate({
             ignore: '',
@@ -261,6 +265,9 @@ app.component('userForm', {
                     minlength: 13,
                     maxlength: 15,
                 },
+                'roles_id': {
+                    roles: true,
+                },
             },
             submitHandler: function(form) {
                 let formData = new FormData($(form_id)[0]);
@@ -274,14 +281,7 @@ app.component('userForm', {
                     })
                     .done(function(res) {
                         if (res.success == true) {
-                            $noty = new Noty({
-                                type: 'success',
-                                layout: 'topRight',
-                                text: res.message,
-                            }).show();
-                            setTimeout(function() {
-                                $noty.close();
-                            }, 3000);
+                            custom_noty('success', res.message);
                             $location.path('/user-pkg/user/list');
                             $scope.$apply();
                         } else {
@@ -291,14 +291,7 @@ app.component('userForm', {
                                 for (var i in res.errors) {
                                     errors += '<li>' + res.errors[i] + '</li>';
                                 }
-                                $noty = new Noty({
-                                    type: 'error',
-                                    layout: 'topRight',
-                                    text: errors
-                                }).show();
-                                setTimeout(function() {
-                                    $noty.close();
-                                }, 3000);
+                                custom_noty('error', errors);
                             } else {
                                 $('#submit').button('reset');
                                 $location.path('/user-pkg/user/list');
@@ -308,14 +301,7 @@ app.component('userForm', {
                     })
                     .fail(function(xhr) {
                         $('#submit').button('reset');
-                        $noty = new Noty({
-                            type: 'error',
-                            layout: 'topRight',
-                            text: 'Something went wrong at server',
-                        }).show();
-                        setTimeout(function() {
-                            $noty.close();
-                        }, 3000);
+                        custom_noty('error', 'Something went wrong at server');
                     });
             }
         });
@@ -332,8 +318,14 @@ app.component('userView', {
         $http.get(
             user_view_data_url + '/' + $routeParams.id
         ).then(function(response) {
+            // console.log(response);
             self.user = response.data.user;
             self.action = response.data.action;
+            self.roles = [];
+            angular.forEach(self.user.roles, function(value, key) {
+                self.roles.push(value.name);
+            });
+            self.user_roles = self.roles.join(", ");
         });
     }
 });

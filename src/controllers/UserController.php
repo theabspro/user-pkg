@@ -1,6 +1,7 @@
 <?php
 
 namespace Abs\UserPkg;
+use Abs\RolePkg\Role;
 use Abs\UserPkg\User;
 use App\Http\Controllers\Controller;
 use Auth;
@@ -26,8 +27,10 @@ class UserController extends Controller {
 				'users.username',
 				DB::raw('COALESCE(users.mobile_number,"--") as mobile_number'),
 				DB::raw('COALESCE(users.email,"--") as email'),
-				DB::raw('IF(users.deleted_at IS NULL,"Active","Inactive") as status')
+				DB::raw('IF(users.deleted_at IS NULL,"Active","Inactive") as status'),
+				DB::raw('COUNT(role_user.user_id) as roles_count')
 			)
+			->leftJoin('role_user', 'users.id', 'role_user.user_id')
 			->where('users.company_id', Auth::user()->company_id)
 			->where(function ($query) use ($request) {
 				if (!empty($request->name)) {
@@ -56,6 +59,7 @@ class UserController extends Controller {
 					$query->whereNotNull('users.deleted_at');
 				}
 			})
+			->groupBy('users.id')
 			->orderby('users.id', 'desc');
 
 		return Datatables::of($users)
@@ -98,15 +102,18 @@ class UserController extends Controller {
 		} else {
 			$user = User::withTrashed()->find($id);
 			$action = 'Edit';
+			$user->roles;
 		}
 		$this->data['user'] = $user;
 		$this->data['action'] = $action;
+		$this->data['role_list'] = $role_list = Role::select('name', 'id')->get();
 
 		return response()->json($this->data);
 	}
 
 	public function viewFormData($id) {
 		$this->data['user'] = $user = User::withTrashed()->find($id);
+		$user->roles;
 		$this->data['action'] = 'View';
 		return response()->json($this->data);
 	}
@@ -180,6 +187,8 @@ class UserController extends Controller {
 				$user->password = Hash::make($request->password);
 			}
 			$user->save();
+
+			$user->roles()->sync(json_decode($request->roles_id));
 
 			DB::commit();
 			if (!($request->id)) {
