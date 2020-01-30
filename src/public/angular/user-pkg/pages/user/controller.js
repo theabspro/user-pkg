@@ -40,6 +40,7 @@ app.component('userList', {
             serverSide: true,
             paging: true,
             stateSave: true,
+            "ordering": false,
             ajax: {
                 url: laravel_routes['getUserPkgList'],
                 type: "GET",
