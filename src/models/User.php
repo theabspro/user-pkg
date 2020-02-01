@@ -5,7 +5,7 @@ namespace Abs\UserPkg;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
-use Illuminate\Database\Eloquent\SoftDeletes;
+//use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
@@ -16,11 +16,11 @@ class User extends Authenticatable {
 	use Notifiable;
 	use EntrustUserTrait;
 	use SeederTrait;
-	use SoftDeletes;
-	use SoftDeletes {
-		SoftDeletes::restore insteadof EntrustUserTrait;
-		EntrustUserTrait::restore insteadof SoftDeletes;
-	}
+	//use SoftDeletes;
+	// use SoftDeletes {
+	// 	SoftDeletes::restore insteadof EntrustUserTrait;
+	// 	EntrustUserTrait::restore insteadof SoftDeletes;
+	// }
 
 	protected $table = 'users';
 	public $timestamps = true;
