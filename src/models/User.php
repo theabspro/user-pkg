@@ -5,6 +5,7 @@ namespace Abs\UserPkg;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
+use Hash;
 //use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -26,24 +27,19 @@ class User extends Authenticatable {
 	public $timestamps = true;
 	protected $fillable = [
 		'company_id',
-		'entity_type',
 		'user_type_id',
 		'entity_id',
+		'first_name',
+		'last_name',
 		'username',
-		'name',
 		'email',
-		'force_password_reset',
 		'mobile_number',
+		'force_password_reset',
 		'password',
 		'imei',
 		'otp',
 		'mpin',
-		'profile_image',
-		'created_at',
-		'updated_at',
-		'deleted_at',
-		'last_login',
-		'last_logout',
+		'profile_image_id',
 	];
 
 	protected $hidden = [
@@ -150,6 +146,14 @@ class User extends Authenticatable {
 			}
 		}
 		return $permissions;
+	}
+
+	public function setPasswordAttribute($pass) {
+		$this->attributes['password'] = Hash::make($pass);
+	}
+
+	public function addresses() {
+		return $this->hasMany('App\Address', 'entity_id')->where('address_of_id', 80);
 	}
 
 }
