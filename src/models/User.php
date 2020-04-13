@@ -5,9 +5,8 @@ namespace Abs\UserPkg;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
-
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Hash;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
@@ -126,6 +125,14 @@ class User extends Authenticatable {
 	}
 	public function roles() {
 		return $this->belongsToMany('Abs\RolePkg\Role', 'role_user', 'user_id', 'role_id');
+	}
+
+	public function profileImage() {
+		return $this->hasOne('App\Attachment', 'entity_id')->where('attachment_of_id', 120)->where('attachment_type_id', 140);
+	}
+
+	public function profileImageUrl() {
+		return $this->profileImage ? './storage/app/public/user-profile-images/' . $this->profileImage->name : '';
 	}
 
 	public function permissions() {
