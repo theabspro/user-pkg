@@ -39,6 +39,8 @@ class User extends Authenticatable {
 		'otp',
 		'mpin',
 		'profile_image_id',
+		//'invitation_sent',
+		'slack_api_url'
 	];
 
 	protected $hidden = [
