@@ -32,6 +32,9 @@ class User extends Authenticatable {
 		'last_name',
 		'username',
 		'email',
+		'personal_email',
+		'alternate_mobile_number',
+		'dob',
 		'mobile_number',
 		'force_password_reset',
 		'password',
@@ -164,5 +167,14 @@ class User extends Authenticatable {
 	public function addresses() {
 		return $this->hasMany('App\Address', 'entity_id')->where('address_of_id', 80);
 	}
+
+	public function getDobAttribute($value) {
+		return empty($value) ? '' : date('d-m-Y', strtotime($value));
+	}
+
+	public function setDobAttribute($date) {
+		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
+	}
+
 
 }
