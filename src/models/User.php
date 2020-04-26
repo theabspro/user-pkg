@@ -5,6 +5,7 @@ namespace Abs\UserPkg;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
+use DB;
 use Hash;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -43,7 +44,7 @@ class User extends Authenticatable {
 		'mpin',
 		'profile_image_id',
 		//'invitation_sent',
-		'slack_api_url'
+		'slack_api_url',
 	];
 
 	protected $hidden = [
@@ -176,5 +177,20 @@ class User extends Authenticatable {
 		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
 	}
 
+	public static function getList($type_id, $add_default = true, $default_text = 'Select User') {
+		$list = Collect(User::select([
+			'id',
+			'first_name',
+			'first_name as name',
+			'email',
+			DB::raw("'http://www.gravatar.com/avatar/90c5367acf89e67f39d6f87d36546e13?s=50&d=retro' as image"),
+		])->where([
+			'user_type_id' => $type_id,
+		])->orderBy('first_name')->get());
+		if ($add_default) {
+			$list->prepend(['id' => '', 'first_name' => $default_text]);
+		}
+		return $list;
+	}
 
 }
