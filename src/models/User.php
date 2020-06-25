@@ -5,6 +5,7 @@ namespace Abs\UserPkg;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Config;
+use App\Role;
 use DB;
 use Hash;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -209,6 +210,59 @@ class User extends Authenticatable {
 		'password', 'remember_token',
 	];
 
+	protected $relationships = [
+		'type',
+		'outlet',
+		'vehicle',
+		'vehicle.model',
+		'customer',
+		'serviceType',
+		'status',
+	];
+
+	// Relationships --------------------------------------------------------------
+
+	public function company() {
+		return $this->belongsTo('App\Company');
+	}
+
+	public function roles() {
+		return $this->belongsToMany('App\Role', 'role_user', 'user_id', 'role_id');
+	}
+
+	public function profileImage() {
+		return $this->hasOne('App\Attachment', 'entity_id')->where('attachment_of_id', 120)->where('attachment_type_id', 140);
+	}
+
+	public function profileImageUrl() {
+		return $this->profileImage ? './storage/app/public/user-profile-images/' . $this->profileImage->name : '';
+	}
+
+	public function permissions() {
+		$perms = [];
+		foreach ($this->roles as $key => $role) {
+			foreach ($role->perms as $key2 => $perm) {
+				$perms[] = $perm->name;
+			}
+		}
+		return $perms;
+	}
+
+	public function perms() {
+		$permissions = [];
+		foreach ($this->roles as $role) {
+			foreach ($role->perms as $permission) {
+				$permissions[] = $permission->name;
+			}
+		}
+		return $permissions;
+	}
+	// Getter & Setters --------------------------------------------------------------
+
+	public function setPasswordAttribute($pass) {
+		$this->attributes['password'] = Hash::make($pass);
+	}
+
 	public function getDobAttribute($value) {
 		return empty($value) ? '' : date('d-m-Y', strtotime($value));
 	}
@@ -216,6 +270,8 @@ class User extends Authenticatable {
 	public function setDobAttribute($date) {
 		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
 	}
+
+	// Static Operations --------------------------------------------------------------
 
 	public static function createFromObject($record_data) {
 
@@ -252,87 +308,63 @@ class User extends Authenticatable {
 		return $record;
 	}
 
-	public static function mapRoles($records) {
+	public static function mapRoles($records, $company = null, $specific_company = null, $tc) {
+		$success = 0;
+		$error_records = [];
 		foreach ($records as $key => $record_data) {
 			try {
-				if (!$record_data->company) {
+				if (!$record_data->company_code) {
 					continue;
 				}
-				$record = static::mapRole($record_data);
+				$status = static::mapRole($record_data);
+				if (!$status['success']) {
+					$error_records[] = array_merge($record_data->toArray(), [
+						'Record No' => $key + 1,
+						'Errors' => implode(',', $status['errors']),
+					]);
+					continue;
+				}
+				$success++;
 			} catch (Exception $e) {
 				dump($e);
 			}
 		}
+		dump($success . ' Records Processed');
+		dump(count($error_records) . ' Errors');
+		dump($error_records);
+		return $error_records;
 	}
 
 	public static function mapRole($record_data) {
-		$company = Company::where('code', $record_data->company)->first();
-
 		$errors = [];
+
+		$company = Company::where('code', $record_data->company_code)->first();
 		if (!$company) {
-			$errors[] = 'Invalid Company : ' . $record_data->company;
-		}
-		$user = User::where('username', $record_data->user)->where('company_id', $company->id)->first();
-		if (!$user) {
-			$errors[] = 'Invalid user : ' . $record_data->user;
+			$errors[] = 'Invalid Company : ' . $record_data->company_code;
 		}
 
-		$role = Role::where('name', $record_data->role)->first();
+		$user = User::where('username', $record_data->username)->where('company_id', $company->id)->first();
+		if (!$user) {
+			$errors[] = 'Invalid user : ' . $record_data->username;
+		}
+
+		$role = Role::where('name', $record_data->role_name)->first();
 		if (!$role) {
-			$errors[] = 'Invalid role : ' . $record_data->role;
+			$errors[] = 'Invalid role : ' . $record_data->role_name;
 		}
 
 		if (count($errors) > 0) {
-			dump($errors);
+			return [
+				'success' => false,
+				'errors' => $errors,
+			];
 			return;
 		}
 
 		$user->roles()->syncWithoutDetaching([$role->id]);
-		return $user;
-	}
-
-	public function company() {
-		return $this->belongsTo('App\Company', 'id', 'company_id');
-	}
-
-	public function roles() {
-		return $this->belongsToMany('App\Role', 'role_user', 'user_id', 'role_id');
-	}
-
-	public function profileImage() {
-		return $this->hasOne('App\Attachment', 'entity_id')->where('attachment_of_id', 120)->where('attachment_type_id', 140);
-	}
-
-	public function profileImageUrl() {
-		return $this->profileImage ? './storage/app/public/user-profile-images/' . $this->profileImage->name : '';
-	}
-
-	public function permissions() {
-		$perms = [];
-		foreach ($this->roles as $key => $role) {
-			foreach ($role->perms as $key2 => $perm) {
-				$perms[] = $perm->name;
-			}
-		}
-		return $perms;
-	}
-
-	public function perms() {
-		$permissions = [];
-		foreach ($this->roles as $role) {
-			foreach ($role->perms as $permission) {
-				$permissions[] = $permission->name;
-			}
-		}
-		return $permissions;
-	}
-
-	public function setPasswordAttribute($pass) {
-		$this->attributes['password'] = Hash::make($pass);
-	}
-
-	public function addresses() {
-		return $this->hasMany('App\Address', 'entity_id')->where('address_of_id', 80);
+		return [
+			'success' => true,
+		];
 	}
 
 	public static function getList($type_id, $add_default = true, $default_text = 'Select User') {
