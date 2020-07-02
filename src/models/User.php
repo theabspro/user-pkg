@@ -517,6 +517,7 @@ class User extends Authenticatable {
 			'Force Password Reset' => $record_data->force_password_reset,
 			'Has Mobile Login' => $record_data->has_mobile_login,
 			'IMEI' => $record_data->imei,
+			'OTP' => $record_data->otp,
 			'MPIN' => $record_data->mpin,
 			'Invitation Sent' => $record_data->invitation_sent,
 		];
