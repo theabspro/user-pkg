@@ -342,9 +342,12 @@ class User extends Authenticatable {
 			$errors[] = 'Invalid Company : ' . $record_data->company_code;
 		}
 
-		$user = User::where('username', $record_data->username)->where('company_id', $company->id)->first();
+		$user = User::where(function($q) use ($record_data){
+			$q->where('username', $record_data->email)
+				->orWhere('email', $record_data->email);
+		})->where('company_id', $company->id)->first();
 		if (!$user) {
-			$errors[] = 'Invalid user : ' . $record_data->username;
+			$errors[] = 'Invalid user : ' . $record_data->email;
 		}
 
 		$role = Role::where('name', $record_data->role_name)->first();
