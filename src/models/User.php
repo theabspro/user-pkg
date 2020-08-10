@@ -48,6 +48,8 @@ class User extends Authenticatable {
 		'profile_image_id',
 		//'invitation_sent',
 		'slack_api_url',
+		'contact_number',
+		'name',
 	];
 
 	protected static $excelColumnRules = [
@@ -342,7 +344,7 @@ class User extends Authenticatable {
 			$errors[] = 'Invalid Company : ' . $record_data->company_code;
 		}
 
-		$user = User::where(function($q) use ($record_data){
+		$user = User::where(function ($q) use ($record_data) {
 			$q->where('username', $record_data->email)
 				->orWhere('email', $record_data->email);
 		})->where('company_id', $company->id)->first();

@@ -86,19 +86,21 @@ class UserController extends Controller {
 						<img src="' . $edit . '" alt="Edit" class="img-responsive" onmouseover=this.src="' . $edit_active . '" onmouseout=this.src="' . $edit . '" >
 					</a>';
 				}
-				if (Entrust::can('view-user')) {
-					$action .= '<a href="#!/user-pkg/user/view/' . $user->id . '">
-						<img src="' . $view . '" alt="View" class="img-responsive" onmouseover=this.src="' . $view_active . '" onmouseout=this.src="' . $view . '" >
-					</a>';
+				/*
+					if (Entrust::can('view-user')) {
+						$action .= '<a href="#!/user-pkg/user/view/' . $user->id . '">
+							<img src="' . $view . '" alt="View" class="img-responsive" onmouseover=this.src="' . $view_active . '" onmouseout=this.src="' . $view . '" >
+						</a>';
 
-				}
-				if (Entrust::can('delete-user')) {
-					$action .= '<a href="javascript:;" data-toggle="modal" data-target="#delete_user"
-					onclick="angular.element(this).scope().deleteUser(' . $user->id . ')" dusk = "delete-btn" title="Delete">
-					<img src="' . $delete . '" alt="Delete" class="img-responsive" onmouseover=this.src="' . $delete_active . '" onmouseout=this.src="' . $delete . '" >
-					</a>
-					';
-				}
+					}
+					if (Entrust::can('delete-user')) {
+						$action .= '<a href="javascript:;" data-toggle="modal" data-target="#delete_user"
+						onclick="angular.element(this).scope().deleteUser(' . $user->id . ')" dusk = "delete-btn" title="Delete">
+						<img src="' . $delete . '" alt="Delete" class="img-responsive" onmouseover=this.src="' . $delete_active . '" onmouseout=this.src="' . $delete . '" >
+						</a>
+						';
+					}
+				*/
 				return $action;
 			})
 			->make(true);
@@ -106,6 +108,7 @@ class UserController extends Controller {
 
 	public function getUserFormData(Request $request) {
 		$id = $request->id;
+		$user_roles = [];
 		if (!$id) {
 			$user = new User;
 			$action = 'Add';
@@ -113,8 +116,15 @@ class UserController extends Controller {
 			$user = User::withTrashed()->find($id);
 			$action = 'Edit';
 			$user->roles;
+			if ($user->roles) {
+				foreach ($user->roles as $key => $role) {
+					$user_roles[] = $role->id;
+				}
+			}
 		}
+
 		$this->data['user'] = $user;
+		$this->data['user_roles'] = $user_roles;
 		$this->data['action'] = $action;
 		$this->data['role_list'] = $role_list = Role::select('name', 'id')->get();
 		$this->data['theme'];
@@ -141,7 +151,7 @@ class UserController extends Controller {
 				'username.min' => 'Minimum 3 Characters',
 				'username.unique' => 'User Name is already taken',
 				'email.unique' => 'User Name is already taken',
-				'mobile_number.unique' => 'Mobile Number is already taken',
+				'contact_number.unique' => 'Mobile Number is already taken',
 				'imei.max' => 'Maximum 15 Characters',
 				'otp.max' => 'Maximum 6 Characters',
 				'mpin.max' => 'Maximum 10 Characters',
@@ -159,10 +169,10 @@ class UserController extends Controller {
 					'max:191',
 					'unique:users,email,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
 				],
-				'mobile_number' => [
+				'contact_number' => [
 					'nullable:true',
 					'max:10',
-					'unique:users,mobile_number,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
+					'unique:users,contact_number,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
 				],
 				'password' => 'nullable',
 				'imei' => 'nullable|max:15',
@@ -185,8 +195,9 @@ class UserController extends Controller {
 				$user->updated_at = Carbon::now();
 			}
 			$user->company_id = Auth::user()->company_id;
-			$user->entity_type = 1;
+			// $user->entity_type = 1;
 			$user->fill($request->all());
+			// dd($user);
 			if ($request->status == 'Inactive') {
 				$user->deleted_at = Carbon::now();
 				$user->deleted_by = Auth::user()->id;

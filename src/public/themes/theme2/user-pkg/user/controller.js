@@ -4,8 +4,11 @@ app.component('userList', {
         $scope.loading = true;
         var self = this;
         self.hasPermission = HelperService.hasPermission;
+        var table_scroll;
+        table_scroll = $('.page-main-content.list-page-content').height() - 37;
+
         var dataTable = $('#users_list').DataTable({
-            "dom": dom_structure,
+            "dom": cndn_dom_structure,
             "language": {
                 "search": "",
                 "searchPlaceholder": "Search",
@@ -20,6 +23,8 @@ app.component('userList', {
             paging: true,
             stateSave: true,
             "ordering": false,
+            scrollY: table_scroll + "px",
+            scrollCollapse: true,
             ajax: {
                 url: laravel_routes['getUserPkgList'],
                 type: "GET",
@@ -52,6 +57,15 @@ app.component('userList', {
             rowCallback: function(row, data) {
                 $(row).addClass('highlight-row');
             }
+        });
+
+        $("#search_box").keyup(function() {
+            dataTable.search(this.value).draw();
+            // dataTable.fnFilter(this.value);
+        });
+        $(".btn-clear").click(function() {
+            dataTable.search("").draw();
+            $("#search_box").val("");
         });
 
         /* Page Title Appended */
@@ -162,6 +176,7 @@ app.component('userForm', {
         ).then(function(response) {
             console.log(response);
             self.user = response.data.user;
+            self.user_roles = response.data.user_roles;
             self.role_list = response.data.role_list;
             self.action = response.data.action;
             self.theme = response.data.theme;
@@ -235,7 +250,7 @@ app.component('userForm', {
                     minlength: 3,
                     maxlength: 255,
                 },
-                'mobile_number': {
+                'contact_number': {
                     number: true,
                     minlength: 10,
                     maxlength: 10,
@@ -261,7 +276,7 @@ app.component('userForm', {
                 let formData = new FormData($(form_id)[0]);
                 $('#submit').button('loading');
                 $.ajax({
-                        url: laravel_routes['saveUser'],
+                        url: laravel_routes['pkgSaveUser'],
                         method: "POST",
                         data: formData,
                         processData: false,
