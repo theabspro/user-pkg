@@ -8,7 +8,7 @@ use Auth;
 use Carbon\Carbon;
 use DB;
 use Entrust;
-use Hash;
+// use Hash;
 use Illuminate\Http\Request;
 use Validator;
 use Yajra\Datatables\Datatables;
@@ -206,7 +206,8 @@ class UserController extends Controller {
 				$user->deleted_at = NULL;
 			}
 			if ($request->change_password == '1') {
-				$user->password = Hash::make($request->password);
+				// $user->password = Hash::make($request->password);
+				$user->password = $request->password;
 			}
 			$user->save();
 
