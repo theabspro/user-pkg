@@ -1,27 +1,21 @@
 <!--Content Wrap -->
 <div class="content-wrap">
     <div class="page-header">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="page-header-content">
-                        <div class="page-header-inner page-title display-inline-block">
-                            <div class="previous-page">
-                                <a href="#!/user-pkg/user/list"><img src="./public/themes/{{$ctrl.theme}}/img/content/previous.svg" class="img-responsive"></a>
-                            </div>
-                        </div><!-- Page Header Inner -->
-                        <div class="page-header-inner page-title display-inline-block">
-                            <h1 class="title">{{$ctrl.action}} User</h1>
-                            <p class="subtitle">
-                                <a href="#!/user-pkg/user/list">
-                                    Users List
-                                </a> /
-                                {{$ctrl.action}}
-                            </p>
-                        </div><!-- Page Header Inner -->
-                    </div><!-- Page Header Content -->
-                </div><!-- Col Main -->
-            </div><!-- Row -->
+        <div class="page-header-inner">
+            <div class="page-header-content-left">
+                <div class="page-header-content button-block">
+                    <a href="#!/user-pkg/user/list"><img src="./public/theme/img/content/previous.svg" class="img-responsive"></a>
+                </div><!-- Page Header Content -->
+                <div class="page-header-content title-block">
+                    <h1 class="title">{{$ctrl.action}} User</h1>
+                    <p class="subtitle">
+                        <a href="#!/user-pkg/user/list">
+                            Users List
+                        </a> /
+                        {{$ctrl.action}}
+                    </p>
+                </div><!-- Page Header Content -->
+            </div><!-- Page Header Content Left -->
         </div><!-- Container -->
     </div><!-- Page Header -->
     <!-- Page Main Content -->
@@ -46,46 +40,73 @@
                                     <div class="tab-pane fade in active" id="general-info" data-animation="fadeInUp" data-animation-delay="300">
                                         <div class="tab-pane-wrap">
                                             <div class="row">
-                                                <ul class="claimed-coupon-list">
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">Name</span>
-                                                        <span class="info">{{$ctrl.user.name ? $ctrl.user.name : '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">Username</span>
-                                                        <span class="info">{{$ctrl.user.username}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">Email ID</span>
-                                                        <span class="info">{{$ctrl.user.email ? $ctrl.user.email: '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">Mobile Number</span>
-                                                        <span class="info">{{$ctrl.user.mobile_number ? $ctrl.user.mobile_number: '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">IMEI</span>
-                                                        <span class="info">{{$ctrl.user.imei ? $ctrl.user.imei : '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">OTP</span>
-                                                        <span class="info">{{$ctrl.user.otp ? $ctrl.user.otp : '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">MPIN</span>
-                                                        <span class="info">{{$ctrl.user.mpin ? $ctrl.user.mpin : '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">Role</span>
-                                                        <span class="info">{{$ctrl.user_roles ? $ctrl.user_roles : '--'}}</span>
-                                                    </li>
-                                                    <li class="claimed-coupon-list-item">
-                                                        <span class="label">Active Status</span>
-                                                        <span class="info">{{$ctrl.user.deleted_at ? 'Inactive' : 'Active'}}</span>
-                                                    </li>
-                                                </ul>
+                                                <div class="col-md-12">
+                                                    <div class="view-details">
+                                                        <div class="page-form-title mt-15">
+                                                            <h5 class="title">Outlet Information</h5>
+                                                        </div><!-- Page Form Title -->
+                                                        <ul class="view-row">
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">Name</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.name ? $ctrl.user.name : '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">Username</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.username}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">Email ID</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.email ? $ctrl.user.email: '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">Mobile Number</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.contact_number ? $ctrl.user.contact_number: '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">IMEI</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.imei ? $ctrl.user.imei : '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">OTP</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.otp ? $ctrl.user.otp : '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">MPIN</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.mpin ? $ctrl.user.mpin : '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">Roles</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user_roles ? $ctrl.user_roles : '--'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <span class="view-col-label">Active Status</span>
+                                                                <span class="view-data-list-value">{{$ctrl.user.deleted_at ? 'Inactive' : 'Active'}}</span>
+                                                            </li>
+                                                            <li class="view-col-4">
+                                                                <!-- <span class="view-col-label">Mapped Outlets</span> -->
+                                                                <!-- <span class="view-data-list-value">{{$ctrl.user_outlets ? $ctrl.user_outlets : '--'}}</span> -->
+                                                                <div class="form-page-table">
+                                                                    <div class="table-responsive">
+                                                                        <table class="table">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th class="fix-width text-center">Mapped Outlets</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                <tr ng-repeat="(key,outlets) in $ctrl.user.outlets" id="role">
+                                                                                    <td class="fix-width">{{outlets.code}} / {{outlets.name}}</td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div><!-- Table Responsive -->
+                                                                </div><!-- Form Page Table -->
+                                                            </li>
+                                                        </ul>
+                                                    </div><!-- View Data -->
+                                                </div><!-- Column -->
                                             </div><!-- Row -->
-                                            <div class="row">
+                                            <div class="row ng-hide">
                                                 <div class="col-md-12">
                                                     <div class="tab-pane-footer text-right">
                                                         <!-- <a class="btn btn-grey btn-nxt">Next</a> -->

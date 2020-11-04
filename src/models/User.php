@@ -272,6 +272,10 @@ class User extends Authenticatable {
 		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
 	}
 
+	public function outlets() {
+		return $this->belongsToMany('App\Outlet', 'user_outlets', 'user_id', 'outlet_id');
+	}
+
 	// Static Operations --------------------------------------------------------------
 
 	// public static function createFromObject($record_data) {

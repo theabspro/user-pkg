@@ -178,6 +178,8 @@ app.component('userForm', {
             self.user = response.data.user;
             self.user_roles = response.data.user_roles;
             self.role_list = response.data.role_list;
+            self.outlet_list = response.data.outlet_list;
+            self.user_outlets = response.data.user_outlets;
             self.action = response.data.action;
             self.theme = response.data.theme;
             $rootScope.loading = false;
