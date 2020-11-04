@@ -150,7 +150,7 @@ class UserController extends Controller {
 		$this->data['user_outlets'] = $user_outlets;
 		$this->data['outlet_list'] = $outlet_list;
 		$this->data['action'] = $action;
-		$this->data['role_list'] = $role_list = Role::select('name', 'id')->get();
+		$this->data['role_list'] = $role_list = Role::select('name', 'id')->orderBy('name', 'asc')->get();
 		$this->data['theme'];
 		return response()->json($this->data);
 	}
