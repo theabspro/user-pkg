@@ -539,7 +539,7 @@ class User extends Authenticatable {
 			->select(
 				'users.id',
 				'users.ecode',
-				'users.name',
+				'users.name'
 			)
 			->where(function ($q) use ($key) {
 				$q->where('ecode', 'like', $key . '%')
