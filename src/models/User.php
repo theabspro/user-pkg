@@ -20,11 +20,11 @@ class User extends Authenticatable {
 	use Notifiable;
 	use EntrustUserTrait;
 	use SeederTrait;
-	use SoftDeletes;
-	// use SoftDeletes {
-	// 	SoftDeletes::restore insteadof EntrustUserTrait;
-	// 	EntrustUserTrait::restore insteadof SoftDeletes;
-	// }
+	//use SoftDeletes;
+	 use SoftDeletes {
+	 	SoftDeletes::restore insteadof EntrustUserTrait;
+	 	EntrustUserTrait::restore insteadof SoftDeletes;
+	 }
 
 	protected $table = 'users';
 	public $timestamps = true;
