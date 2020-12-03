@@ -128,6 +128,24 @@
                                         </div><!-- column -->
                                         <div class="col-md-3">
                                             <div class="form-group">
+                                                <label>Outlets <sup class="mandatory"></sup></label>
+                                                <md-select multiple ng-model="$ctrl.user_outlets" placeholder="Select Outlets" data-md-container-class="selectdemoSelectHeader" md-search-text="searchOutlets">
+                                                    <md-select-header class="demo-select-header">
+                                                        <input ng-model="searchOutlets" type="search" placeholder="Search.." class="demo-header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                                    </md-select-header>
+                                                    <md-optgroup>
+                                                        <md-option ng-value="outlet.id" ng-repeat="outlet in $ctrl.outlet_list | filter:searchOutlets">
+                                                            {{outlet.code}} / {{outlet.name}}
+                                                        </md-option>
+                                                    </md-optgroup>
+                                                </md-select>
+                                                <input type="hidden" name="outlet_ids" value="{{$ctrl.user_outlets}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
                                                 <label>Active Status<span class="mandatory">*</span></label>
                                                 <md-switch ng-model="$ctrl.switch_value" aria-label="Switch 2" ng-true-value="'Inactive'" ng-false-value="'Active'" class="md-warn">
                                                     {{ $ctrl.switch_value }}

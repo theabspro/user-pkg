@@ -5,6 +5,7 @@ namespace Abs\UserPkg;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
 use App\Role;
+use Auth;
 use DB;
 use Hash;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -272,6 +273,10 @@ class User extends Authenticatable {
 		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
 	}
 
+	public function outlets() {
+		return $this->belongsToMany('App\Outlet', 'user_outlets', 'user_id', 'outlet_id');
+	}
+
 	// Static Operations --------------------------------------------------------------
 
 	// public static function createFromObject($record_data) {
@@ -526,6 +531,24 @@ class User extends Authenticatable {
 			'Invitation Sent' => $record_data->invitation_sent,
 		];
 		return static::saveFromExcelArray($record);
+	}
+
+	public static function searchUser($r) {
+		$key = $r->key;
+		$list = self::where('company_id', Auth::user()->company_id)
+			->select(
+				'users.id',
+				'users.ecode',
+				'users.name'
+			)
+			->where(function ($q) use ($key) {
+				$q->where('ecode', 'like', $key . '%')
+				->orWhere('name', 'like', $key . '%')
+				;
+			})
+			->where('users.working_outlet_id', Auth::user()->working_outlet_id)
+			->get();
+		return response()->json($list);
 	}
 
 }

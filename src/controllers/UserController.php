@@ -3,7 +3,9 @@
 namespace Abs\UserPkg;
 use Abs\RolePkg\Role;
 use Abs\UserPkg\User;
+use App\Employee;
 use App\Http\Controllers\Controller;
+use App\Outlet;
 use Auth;
 use Carbon\Carbon;
 use DB;
@@ -86,6 +88,12 @@ class UserController extends Controller {
 						<img src="' . $edit . '" alt="Edit" class="img-responsive" onmouseover=this.src="' . $edit_active . '" onmouseout=this.src="' . $edit . '" >
 					</a>';
 				}
+
+				if (Entrust::can('view-user')) {
+					$action .= '<a href="#!/user-pkg/user/view/' . $user->id . '">
+						<img src="' . $view . '" alt="Edit" class="img-responsive" onmouseover=this.src="' . $view_active . '" onmouseout=this.src="' . $view . '" >
+					</a>';
+				}
 				/*
 					if (Entrust::can('view-user')) {
 						$action .= '<a href="#!/user-pkg/user/view/' . $user->id . '">
@@ -109,6 +117,9 @@ class UserController extends Controller {
 	public function getUserFormData(Request $request) {
 		$id = $request->id;
 		$user_roles = [];
+		$user_outlets = [];
+
+		$outlet_list = Outlet::where('company_id', Auth::user()->company_id)->select('name', 'code', 'id')->orderBy('name', 'asc')->get();
 		if (!$id) {
 			$user = new User;
 			$action = 'Add';
@@ -116,23 +127,36 @@ class UserController extends Controller {
 			$user = User::withTrashed()->find($id);
 			$action = 'Edit';
 			$user->roles;
+			$user->outlets;
 			if ($user->roles) {
 				foreach ($user->roles as $key => $role) {
 					$user_roles[] = $role->id;
 				}
 			}
+
+			if ($user->outlets) {
+				foreach ($user->outlets as $user_outlet) {
+					$user_outlets[] = $user_outlet->id;
+					if (isset($outlet_list[$user_outlet->id])) {
+						$outlet_list[$user_outlet->id]->checked = true;
+					}
+				}
+			}
+
 		}
 
 		$this->data['user'] = $user;
 		$this->data['user_roles'] = $user_roles;
+		$this->data['user_outlets'] = $user_outlets;
+		$this->data['outlet_list'] = $outlet_list;
 		$this->data['action'] = $action;
-		$this->data['role_list'] = $role_list = Role::select('name', 'id')->get();
+		$this->data['role_list'] = $role_list = Role::select('name', 'id')->orderBy('name', 'asc')->get();
 		$this->data['theme'];
 		return response()->json($this->data);
 	}
 
 	public function viewFormData(Request $request) {
-		$this->data['user'] = $user = User::withTrashed()->find($request->id);
+		$this->data['user'] = $user = User::withTrashed()->with(['outlets', 'roles'])->find($request->id);
 		$user->roles;
 		$this->data['action'] = 'View';
 		$this->data['theme'];
@@ -211,7 +235,21 @@ class UserController extends Controller {
 			}
 			$user->save();
 
-			$user->roles()->sync(json_decode($request->roles_id));
+			if ($request->roles_id) {
+				$user->roles()->sync(json_decode($request->roles_id));
+			}
+
+			if ($request->outlet_ids) {
+				$user->outlets()->sync(json_decode($request->outlet_ids));
+			}
+
+			//Check Employee Mapped is User.If Yes means update mapped outlet in employee
+			if ($user->user_type_id == 1 && $user->entity_id) {
+				$employee = Employee::find($user->entity_id);
+				if ($employee) {
+					$employee->outlets()->sync(json_decode($request->outlet_ids));
+				}
+			}
 
 			DB::commit();
 			if (!($request->id)) {
