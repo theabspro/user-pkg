@@ -19,13 +19,13 @@ use Zizaco\Entrust\Traits\EntrustUserTrait;
 class User extends Authenticatable {
 	use HasApiTokens;
 	use Notifiable;
-	use EntrustUserTrait;
+	// use EntrustUserTrait;
 	use SeederTrait;
 	//use SoftDeletes;
-	 use SoftDeletes {
-	 	SoftDeletes::restore insteadof EntrustUserTrait;
-	 	EntrustUserTrait::restore insteadof SoftDeletes;
-	 }
+	 // use SoftDeletes {
+	 // 	SoftDeletes::restore insteadof EntrustUserTrait;
+	 // 	EntrustUserTrait::restore insteadof SoftDeletes;
+	 // }
 
 	protected $table = 'users';
 	public $timestamps = true;
