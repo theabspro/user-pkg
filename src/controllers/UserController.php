@@ -174,7 +174,7 @@ class UserController extends Controller {
 				'username.max' => 'Maximum 191 Characters',
 				'username.min' => 'Minimum 3 Characters',
 				'username.unique' => 'User Name is already taken',
-				'email.unique' => 'User Name is already taken',
+				// 'email.unique' => 'User Name is already taken',
 				'contact_number.unique' => 'Mobile Number is already taken',
 				'imei.max' => 'Maximum 15 Characters',
 				'otp.max' => 'Maximum 6 Characters',
@@ -188,11 +188,11 @@ class UserController extends Controller {
 					'min:3',
 					'unique:users,username,' . $request->id . ',id',
 				],
-				'email' => [
-					'nullable:true',
-					'max:191',
-					'unique:users,email,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
-				],
+				// 'email' => [
+				// 	'nullable:true',
+				// 	'max:191',
+				// 	'unique:users,email,' . $request->id . ',id,company_id,' . Auth::user()->company_id,
+				// ],
 				'contact_number' => [
 					'nullable:true',
 					'max:10',
