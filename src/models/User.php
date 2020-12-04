@@ -12,20 +12,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
-use Zizaco\Entrust\Traits\EntrustUserTrait;
+use EntrustUserTrait;
 
 // use App\BaseModel;
 
 class User extends Authenticatable {
 	use HasApiTokens;
 	use Notifiable;
-	// use EntrustUserTrait;
+	use EntrustUserTrait;
 	use SeederTrait;
 	//use SoftDeletes;
-	 // use SoftDeletes {
-	 // 	SoftDeletes::restore insteadof EntrustUserTrait;
-	 // 	EntrustUserTrait::restore insteadof SoftDeletes;
-	 // }
+	 use SoftDeletes {
+	 	SoftDeletes::restore insteadof EntrustUserTrait;
+	 	EntrustUserTrait::restore insteadof SoftDeletes;
+	 }
 
 	protected $table = 'users';
 	public $timestamps = true;
