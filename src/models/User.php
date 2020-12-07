@@ -31,7 +31,7 @@ class User extends BaseModel implements
 	use HasApiTokens;
 	use Notifiable;
 	use EntrustUserTrait;
-	use \Illuminate\Auth\Authenticatable, CanResetPassword, MustVerifyEmail;
+	use \Illuminate\Auth\Authenticatable, CanResetPassword;
 	use SoftDeletes;
 	use Authorizable {
 		EntrustUserTrait::can insteadof Authorizable;
