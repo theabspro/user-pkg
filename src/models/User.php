@@ -2,47 +2,37 @@
 
 namespace Abs\UserPkg;
 
-use Abs\CompanyPkg\Traits\CompanyableTrait;
 use Abs\HelperPkg\Traits\SeederTrait;
 use App\Company;
-use App\Models\BaseModel;
 use App\Role;
 use Auth;
 use DB;
 use Hash;
-use http\Exception;
-use Illuminate\Auth\MustVerifyEmail;
-use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Zizaco\Entrust\Traits\EntrustUserTrait;
 
 // use App\BaseModel;
 
-class User extends BaseModel implements
-	AuthenticatableContract,
-	AuthorizableContract,
-	CanResetPasswordContract{
+class User extends Authenticatable {
 	use HasApiTokens;
 	use Notifiable;
 	use EntrustUserTrait;
-	use \Illuminate\Auth\Authenticatable, CanResetPassword;
-	use SoftDeletes;
-	use Authorizable {
-		EntrustUserTrait::can insteadof Authorizable;
-	}
 	use SeederTrait;
-	use CompanyableTrait;
+	use SoftDeletes;
+	//  use SoftDeletes {
+	//  	SoftDeletes::restore insteadof EntrustUserTrait;
+	//  	EntrustUserTrait::restore insteadof SoftDeletes;
+	//  }
 
 	protected $table = 'users';
 	public $timestamps = true;
-
 	protected $fillable = [
+		'company_id',
+		'user_type_id',
+		'entity_id',
 		'first_name',
 		'last_name',
 		'username',
@@ -56,9 +46,12 @@ class User extends BaseModel implements
 		'imei',
 		'otp',
 		'mpin',
-		'invitation_sent',
+		'profile_image_id',
+		//'invitation_sent',
+		'slack_api_url',
+		'contact_number',
+		'name',
 	];
-
 
 	protected static $excelColumnRules = [
 		'User Type Name' => [
@@ -219,13 +212,6 @@ class User extends BaseModel implements
 		'password', 'remember_token',
 	];
 
-	protected $casts = [
-		'dob' => 'date',
-		'invitation_sent' => 'boolean',
-		'force_password_reset' => 'boolean',
-		'email_verified_at' => 'datetime',
-	];
-
 	protected $relationships = [
 		'type',
 		'outlet',
@@ -235,76 +221,6 @@ class User extends BaseModel implements
 		'serviceType',
 		'status',
 	];
-
-	public $fillableRelationships = [
-		'roles',
-		'profileImage',
-		'company',
-	];
-
-	// Relationships to auto load
-	public static function relationships($action = '', $format = '') {
-		$relationships = [];
-
-		if (in_array($action, [
-			'index',
-		])) {
-			$relationships = array_merge($relationships, [
-				//'company',
-			]);
-		} else if ($action == 'read') {
-			$relationships = array_merge($relationships, [
-				'roles',
-			]);
-		} else if ($action == 'save') {
-			$relationships = array_merge($relationships, [
-			]);
-		} else if ($action == 'options') {
-			$relationships = array_merge($relationships, [
-			]);
-		}
-
-		return $relationships;
-	}
-
-	public static function appendRelationshipCounts($action = '', $format = '') {
-		$relationships = [];
-
-		if (in_array($action, [
-			'index',
-		])) {
-			$relationships = array_merge($relationships, [
-				'roles',
-			]);
-		} else if ($action == 'options') {
-			$relationships = array_merge($relationships, [
-			]);
-		}
-
-		return $relationships;
-	}
-
-	// Dynamic Attributes --------------------------------------------------------------
-
-	public function setPasswordAttribute($pass) {
-		$this->attributes['password'] = \Illuminate\Support\Facades\Hash::make($pass);
-	}
-
-	public function setChangePasswordAttribute($pass) {
-		$this->attributes['change_password'] = Hash::make($pass);
-	}
-
-	public function getDobAttribute($value) {
-		return empty($value) ? '' : date('d-m-Y', strtotime($value));
-	}
-
-	public function setDobAttribute($date) {
-		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
-	}
-
-	public function getPermissionsAttribute() {
-		return $this->perms();
-	}
 
 	// Relationships --------------------------------------------------------------
 
@@ -343,8 +259,23 @@ class User extends BaseModel implements
 		}
 		return $permissions;
 	}
-
 	// Getter & Setters --------------------------------------------------------------
+
+	public function setPasswordAttribute($pass) {
+		$this->attributes['password'] = Hash::make($pass);
+	}
+
+	public function getDobAttribute($value) {
+		return empty($value) ? '' : date('d-m-Y', strtotime($value));
+	}
+
+	public function setDobAttribute($date) {
+		return $this->attributes['dob'] = empty($date) ? NULL : date('Y-m-d', strtotime($date));
+	}
+
+	public function outlets() {
+		return $this->belongsToMany('App\Outlet', 'user_outlets', 'user_id', 'outlet_id');
+	}
 
 	// Static Operations --------------------------------------------------------------
 
@@ -460,6 +391,8 @@ class User extends BaseModel implements
 		}
 		return $list;
 	}
+
+	// Static Operations --------------------------------------------------------------
 
 	public static function saveFromExcelArray($record_data) {
 		try {
@@ -616,24 +549,6 @@ class User extends BaseModel implements
 			->where('users.working_outlet_id', Auth::user()->working_outlet_id)
 			->get();
 		return response()->json($list);
-	}
-
-	public static function boot() {
-
-		parent::boot();
-
-		static::saving(function (self $Model) {
-			// automatic validation before saving
-			if (config('app.autovalidate')) {
-				if ($Model->autovalidate) {
-					try {
-						$Model->validateAttrs();
-					} catch (Exception $ex) {
-						throw $ex;
-					}
-				}
-			}
-		});
 	}
 
 }
