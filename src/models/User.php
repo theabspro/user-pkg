@@ -529,6 +529,7 @@ class User extends Authenticatable {
 			'OTP' => $record_data->otp,
 			'MPIN' => $record_data->mpin,
 			'Invitation Sent' => $record_data->invitation_sent,
+			'Role' => $record_data->role,
 		];
 		return static::saveFromExcelArray($record);
 	}
